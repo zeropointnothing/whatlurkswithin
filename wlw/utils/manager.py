@@ -1,6 +1,7 @@
 import pickle
 import os
 from wlw.utils.character import Character
+from wlw.utils.errors import *
 
 class Manager:
     """
@@ -81,7 +82,7 @@ class Manager:
         for char in self.__characters:
             if char.name == name:
                 return char
-        raise ValueError(f"No such character '{name}'.")
+        raise CharacterNotFoundError(f"No such character '{name}'.")
 
     def save(self):
         """

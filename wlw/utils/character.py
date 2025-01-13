@@ -31,7 +31,6 @@ class Character:
 
         self.__current_text = ""
         self.__current_text_index = 0
-        self.__current_text_read = False
         self.__affinity = 0
         self.__inventory = []
         self.__special = special

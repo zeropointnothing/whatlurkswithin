@@ -3,6 +3,7 @@ import time
 import threading
 from wlw.utils.renderer import Renderer
 from wlw.utils.manager import Manager
+from wlw.utils.errors import *
 from wlw.game import chapter_modules
 
 class WhatLurksWithin:
@@ -97,7 +98,7 @@ class WhatLurksWithin:
                     loading = False
                     continue
                 else:
-                    raise ImportError(f"Section '{section_name}' does not exist within chapter '{chap.CHAPTER_TITLE}'.")
+                    raise SectionNotFoundError(f"Section '{section_name}' does not exist within chapter '{chap.CHAPTER_TITLE}'.")
             elif loading:
                 continue
 
