@@ -17,9 +17,10 @@ class Main(Chapter):
     def start(self):
         self.narr.speak("Two people, two stories. One choice.")
         self.narr.speak("That choice is yours, Player.")
-        self.narr.speak("Who will you choose to follow?")
 
         while True:
+            self.narr.speak("Who will you choose to follow?")
+
             self.renderer.set_choices([
                 {"title": "Nihira", "id": "female"},
                 {"title": "... [COMING SOON!]", "id": "male"}

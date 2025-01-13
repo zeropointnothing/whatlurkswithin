@@ -39,7 +39,11 @@ class WhatLurksWithin:
         waiting_on_user = False
 
         while self.chapter_thread.is_alive():
-            self.h, self.w = self.stdscr.getmaxyx()
+            newh, neww = stdscr.getmaxyx()
+            if newh != self.h or neww != self.w:
+                self.stdscr.clear()
+            self.h, self.w = newh, neww
+
             k = self.stdscr.getch()
 
             # 'choice' rendering
@@ -96,7 +100,6 @@ class WhatLurksWithin:
         if self.chapter_thread:
             self.chapter_thread.join()
 
-
     def game_loop(self, loading: bool = False):
         """
         Main game loop for WLW.
@@ -144,8 +147,11 @@ class WhatLurksWithin:
         while True:
             time.sleep(0.05)
             k = stdscr.getch()
-            self.h, self.w = stdscr.getmaxyx()
-            
+            newh, neww = stdscr.getmaxyx()
+            if newh != self.h or neww != self.w:
+                self.stdscr.clear()
+            self.h, self.w = newh, neww
+
             midy = self.h//2
             for i, choice in enumerate(self.renderer.choices):
                 midx = (self.w//2)-(len(choice["title"])//2)
