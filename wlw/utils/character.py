@@ -144,4 +144,4 @@ class Character:
         self.__current_text_index = 0
 
         while self.__current_text:
-            time.sleep(1)
+            time.sleep(0.05)
