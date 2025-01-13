@@ -1,4 +1,5 @@
 import curses
+import time
 from wlw.utils import Character
 
 class Renderer:
@@ -105,3 +106,23 @@ class Renderer:
         self.clear_choices()
 
         self.__choices = choices[::-1]
+
+    def wait_choice(self) -> str:
+        """
+        Halt the current thread until a choice has been made, then return that choice.
+
+        Clears the choice menu and screen upon exit.
+
+        Returns:
+        str: The user's choice.
+        """
+
+        while not self.user_chose:
+            time.sleep(0.1)
+
+        out = self.user_chose
+
+        self.clear_choices()
+        self.stdscr.clear()
+
+        return out

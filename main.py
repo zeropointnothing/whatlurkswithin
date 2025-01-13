@@ -40,7 +40,28 @@ class WhatLurksWithin:
             self.h, self.w = self.stdscr.getmaxyx()
             k = self.stdscr.getch()
 
-            if k in [curses.KEY_ENTER, 10]:
+            # 'choice' rendering
+            midy = self.h//2
+            for i, choice in enumerate(self.renderer.choices):
+                midx = (self.w//2)-(len(choice["title"])//2)
+                if self.current_choice == i:
+                    self.renderer.place_line(midx, midy-i, choice["title"], self.renderer.color_black_white, bold=True)
+                else:
+                    self.renderer.place_line(midx, midy-i, choice["title"], self.renderer.color_white_black, italic=True)
+
+            # user input
+            # 'choice' input
+            if k == curses.KEY_DOWN and self.renderer.choices:
+                self.current_choice -= 1
+                self.current_choice %= len(self.renderer.choices)
+            elif k == curses.KEY_UP and self.renderer.choices:
+                self.current_choice += 1
+                self.current_choice %= len(self.renderer.choices)
+            elif k in [curses.KEY_ENTER, 10] and self.renderer.choices:
+                self.renderer._user_chose = self.current_choice
+                self.current_choice = 0
+            # normal input
+            elif k in [curses.KEY_ENTER, 10]:
                 user_read = True
 
             for char in self.manager.characters:
@@ -161,6 +182,8 @@ if __name__ == "__main__":
         user_choice = game.main_menu()
 
         game.stdscr.clear()
+        game.renderer.clear_choices()
+        game.current_choice = 0
 
         if user_choice == 1:
             game.game_loop()

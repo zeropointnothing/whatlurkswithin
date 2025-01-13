@@ -1,5 +1,6 @@
 from wlw.utils.chapter import Chapter
 from wlw.utils.character import Character
+import time
 
 CHAPTER_TITLE = "False Beginnings"
 CHAPTER_NUMBER = 1
@@ -9,28 +10,36 @@ class Main(Chapter):
         super().__init__(manager, renderer)
         self.title = CHAPTER_TITLE
 
-        self.aki = self.manager.register_character(Character("Aki", "f"))
-        self.chloe = self.manager.register_character(Character("Chloe", "f"))
-        self.aut = self.manager.register_character(Character("Autumn", "f"))
+        self.nih = self.manager.register_character(Character("Nihira Khimaris", "f"))
+        self.emi = self.manager.register_character(Character("EdEn:TU9A-EMIL (Emil Khmaris)", "f"))
         self.narr = self.manager.register_character(Character("Narrator", "m", True))
 
     def start(self):
-        self.s1()
+        self.narr.speak("Two people, two stories. One choice.")
+        self.narr.speak("That choice is yours, Player.")
+        self.narr.speak("Who will you choose to follow?")
 
-    def s1(self):
-        self.manager.set_section(CHAPTER_TITLE, "s1")
+        while True:
+            self.renderer.set_choices([
+                {"title": "Nihira", "id": "female"},
+                {"title": "... [COMING SOON!]", "id": "male"}
+                ])
+
+            user = self.renderer.wait_choice()
+
+            if user == "female":
+                self.manager.persistent["route"] = "f"
+                break
+            else:
+                continue
+
+        if self.manager.persistent["route"] == "f":
+            self.f_s1()
+
+    # female 'Commander' route start
+    def f_s1(self):
+        self.manager.set_section(CHAPTER_TITLE, "f_s1")
         self.manager.save()
 
-        self.aki.speak("Hai! :3")
-        self.chloe.speak("Hello, Aki!")
-        self.aki.speak("Where are we?... I don't recognize this place.")
-        self.narr.speak("Aki looks around nervously, wary of her new surroundings.")
-        self.chloe.speak("I'm not sure...")
+        self.nih.speak("placeholder.")
 
-        self.s2()
-
-
-    def s2(self):
-        self.manager.set_section(CHAPTER_TITLE, "s2")
-        self.manager.save()
-        self.narr.speak("Twenty days later...")
