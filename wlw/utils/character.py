@@ -63,33 +63,43 @@ class Character:
         """
         What the character is saying, and far they are in saying it.
         
-        Clears the character's speach once it has been fully read.
+        When the text has been fully read, the index will be -1.
 
         Returns:
         tuple: Current text, current text index.
         """
-        self.__current_text_read = True
-
         if self.__current_text_index > len(self.__current_text):
-            self.__current_text = ""
-            return ("", 0)
+            return (self.__current_text, -1)
 
         return (self.__current_text, self.__current_text_index)
 
-    def _increment_speak_index(self):
+    def _increment_speak_index(self, max: bool = False):
         """
-        Increment the text index of the character's speach.
+        Increment the text index of the character's speech.
 
         Should only be called by the main thread.
+
+        Args:
+        max (bool): Whether or not to completely max out the increment.
         """
-        self.__current_text_index += 1
-        self.__current_text_read = False
+
+        if max:
+            self.__current_text_index = len(self.__current_text)+1
+        else:
+            self.__current_text_index += 1
+
+    def _mark_read_text(self):
+        """
+        Clear the internal text variable, releasing any threads
+        waiting for the user to read the text.
+        """
+        self.__current_text = ""
 
     def speak(self, text: str) -> None:
         """
         Make a character 'speak'.
 
-        Sets the character's internal speach variables to `text`, then waits
+        Sets the character's internal speech variables to `text`, then waits
         for the text to be read, before returning.
 
         Args:
@@ -99,5 +109,5 @@ class Character:
         self.__current_text = text
         self.__current_text_index = 0
 
-        while self.__current_text or not self.__current_text_read:
+        while self.__current_text:
             time.sleep(1)
