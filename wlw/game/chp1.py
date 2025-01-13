@@ -10,8 +10,8 @@ class Main(Chapter):
         super().__init__(manager, renderer)
         self.title = CHAPTER_TITLE
 
-        self.nih = self.manager.register_character(Character("Nihira Khimaris", "f"))
-        self.emi = self.manager.register_character(Character("EdEn:TU9A-EMIL (Emil Khmaris)", "f"))
+        self.nih = self.manager.register_character(Character("Nihira Khimaris", "f", hidden=True))
+        self.emi = self.manager.register_character(Character("EdEn:TU9A-EMIL (Emil Khmaris)", "f", hidden=True))
         self.narr = self.manager.register_character(Character("Narrator", "m", True))
 
     def start(self):

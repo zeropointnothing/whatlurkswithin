@@ -12,28 +12,38 @@ class Character:
     Special characters may be excluded from several functions, and should be used for characters such as the
     narrator or "system".
     """
-    def __init__(self, name: str, sex, special: bool = False):
+    def __init__(self, name: str, sex, special: bool = False, hidden: bool = False):
         """
         Args:
         name (str): The character's name.
         sex (str): The character's sex. Should be either 'm' or 'f'.
         special (bool): Whether the character is considered 'special'.
+        hidden (bool): Whether the character is 'hidden', and should fake their name as '...'.
 
         Raises:
         ValueError: 'sex' was not a valid string.
         """
-        self.name = name
+
+        self.hidden = hidden
 
         if sex.lower() not in ["m", "f"]:
             raise ValueError(f"Invalid character sex '{sex}' for character '{name}'. Expected 'm' or 'f'.")
         else:
             self.__sex = sex.lower()
 
+        self.__name = name
         self.__current_text = ""
         self.__current_text_index = 0
         self.__affinity = 0
         self.__inventory = []
         self.__special = special
+
+    @property
+    def name(self):
+        if self.hidden:
+            return "..."
+        else:
+            return self.__name
 
     @property
     def pronoun(self):
