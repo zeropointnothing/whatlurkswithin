@@ -93,6 +93,9 @@ class WhatLurksWithin:
                     # self.renderer.place_line(0, 0, f"{char.name}: {char.saying[0][:char.saying[1]]}")
 
             time.sleep(0.01)
+        if self.chapter_thread:
+            self.chapter_thread.join()
+
 
     def game_loop(self, loading: bool = False):
         """
@@ -195,13 +198,10 @@ if __name__ == "__main__":
             pass
 
     except KeyboardInterrupt: # user wants out, so we shouldn't wait on the chapter thread
-        curses.endwin()
-        sys.exit(0)
+        pass
     except Exception as e:
         curses.endwin()
         raise e
 
     curses.endwin()
-    if game.chapter_thread:
-        game.chapter_thread.join()
 
