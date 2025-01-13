@@ -140,6 +140,9 @@ class Character:
         text (str): The text for the character to speak.
         """
 
+        if not isinstance(text, str):
+            raise TypeError(f"Invalid type '{text.__class__.__name__}'. Expected 'str'")
+
         self.__current_text = text
         self.__current_text_index = 0
 
