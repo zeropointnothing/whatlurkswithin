@@ -12,8 +12,6 @@ class Manager:
     def __init__(self, save_path: str):
         self.save_path = save_path
 
-        self.__SPECIAL_CHARACTERS = ["narrator"]
-
         self.__current_section = {"chapter": None, "section": None}
         self.__characters: list[Character] = [] # game characters
         self.__persistent: dict = {} # persistent data
@@ -69,8 +67,6 @@ class Manager:
 
         Only characters added via this function will be saved to the save file.
 
-        Special characters (Narrator) are not included when saving.
-
         Args:
         character (Character): Character object to register.
 
@@ -90,10 +86,12 @@ class Manager:
     def save(self):
         """
         Save game data to the save file.
+
+        Special characters are excluded from the save file and are not persistent.
         """
         with open(self.save_path, "wb") as f:
             pickle.dump({"current_section": self.__current_section, 
-                         "characters": [_ for _ in self.__characters if _.name.lower() not in self.__SPECIAL_CHARACTERS],
+                         "characters": [_ for _ in self.__characters if not _.special],
                          "persistent": self.__persistent}, f)
 
     def load(self):

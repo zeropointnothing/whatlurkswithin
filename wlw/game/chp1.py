@@ -11,7 +11,8 @@ class Main(Chapter):
 
         self.aki = self.manager.register_character(Character("Aki", "f"))
         self.chloe = self.manager.register_character(Character("Chloe", "f"))
-        self.narr = self.manager.register_character(Character("Narrator", "m"))
+        self.aut = self.manager.register_character(Character("Autumn", "f"))
+        self.narr = self.manager.register_character(Character("Narrator", "m", True))
 
     def start(self):
         self.s1()

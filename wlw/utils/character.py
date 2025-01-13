@@ -8,8 +8,20 @@ class Character:
     Character class.
 
     Holds several important attributes for characters, such as name, sex, affinity, and pronouns.
+    
+    Special characters may be excluded from several functions, and should be used for characters such as the
+    narrator or "system".
     """
-    def __init__(self, name: str, sex):
+    def __init__(self, name: str, sex, special: bool = False):
+        """
+        Args:
+        name (str): The character's name.
+        sex (str): The character's sex. Should be either 'm' or 'f'.
+        special (bool): Whether the character is considered 'special'.
+
+        Raises:
+        ValueError: 'sex' was not a valid string.
+        """
         self.name = name
 
         if sex.lower() not in ["m", "f"]:
@@ -22,6 +34,7 @@ class Character:
         self.__current_text_read = False
         self.__affinity = 0
         self.__inventory = []
+        self.__special = special
 
     @property
     def pronoun(self):
@@ -58,6 +71,18 @@ class Character:
         """
         return self.__affinity
     
+    @property
+    def special(self):
+        """
+        Special character.
+
+        Read-only to prevent issues with the Manager.
+
+        Returns:
+        bool: Whether the character is considered 'special'.
+        """
+        return self.__special
+
     @property
     def saying(self) -> tuple[str, int]:
         """
