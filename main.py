@@ -123,9 +123,9 @@ class WhatLurksWithin:
             for i, choice in enumerate(self.renderer.choices):
                 midx = (self.w//2)-(len(choice["title"])//2)
                 if self.current_choice == i:
-                    self.renderer.place_line(midx, midy-i, choice["title"], self.renderer.color_black_white)
+                    self.renderer.place_line(midx, midy-i, choice["title"], self.renderer.color_black_white, bold=True)
                 else:
-                    self.renderer.place_line(midx, midy-i, choice["title"], self.renderer.color_white_black)
+                    self.renderer.place_line(midx, midy-i, choice["title"], self.renderer.color_white_black, italic=True)
 
             self.renderer.place_line((self.w//2)-(len(title)//2), 0, str(title))
             self.stdscr.clrtoeol()

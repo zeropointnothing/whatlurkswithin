@@ -62,8 +62,16 @@ class Renderer:
     def choices(self):
         return self.__choices
 
-    def place_line(self, x, y, text: str, color = -1):
-        if color != -1:
+    def place_line(self, x, y, text: str, color = -1, italic: bool = False, bold: bool = False):
+        if color != -1 and italic: # color/italics
+            self.stdscr.addstr(y, x, text, color | curses.A_ITALIC)
+        elif color != -1 and bold: # color/bold
+            self.stdscr.addstr(y, x, text, color | curses.A_BOLD)
+        elif italic: # italics
+            self.stdscr.addstr(y, x, text, curses.A_ITALIC)
+        elif bold: # bold
+            self.stdscr.addstr(y, x, text, curses.A_BOLD)
+        elif color != -1: # color only
             self.stdscr.addstr(y, x, text, color)
         else:
             self.stdscr.addstr(y, x, text)
