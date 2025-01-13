@@ -13,3 +13,9 @@ class CharacterNotFoundError(Exception):
     The requested character was not found.
     """
     pass
+
+class ThreadError(Exception):
+    """
+    The thread encountered an unrecoverable error.
+    """
+    pass

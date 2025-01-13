@@ -1,9 +1,10 @@
 import curses
 import time
-import threading
+import sys
 from wlw.utils.renderer import Renderer
 from wlw.utils.manager import Manager
 from wlw.utils.errors import *
+from wlw.utils.chapter import ChapterThread
 from wlw.game import chapter_modules
 
 class WhatLurksWithin:
@@ -15,6 +16,7 @@ class WhatLurksWithin:
 
         self.renderer = Renderer(self.stdscr)
         self.manager = Manager("save.dat")
+        self.chapter_thread = None
         self.h, self.w = stdscr.getmaxyx()
 
         self.TEXT_SPEED = 0.05
@@ -30,13 +32,13 @@ class WhatLurksWithin:
         """
 
         # chapters rely on blocking functions, so it needs to run in the background
-        chapter_thread = threading.Thread(target=start, daemon=True, name="chapter-thread")
-        chapter_thread.start()
+        self.chapter_thread = ChapterThread(target=start, daemon=True, name="chapter-thread")
+        self.chapter_thread.start()
         last_char = time.time()
         user_read = False
         waiting_on_user = False
 
-        while chapter_thread.is_alive():
+        while self.chapter_thread.is_alive():
             self.h, self.w = self.stdscr.getmaxyx()
             k = self.stdscr.getch()
 
@@ -192,10 +194,14 @@ if __name__ == "__main__":
         else:
             pass
 
-    except KeyboardInterrupt:
-        pass
+    except KeyboardInterrupt: # user wants out, so we shouldn't wait on the chapter thread
+        curses.endwin()
+        sys.exit(0)
     except Exception as e:
         curses.endwin()
         raise e
 
     curses.endwin()
+    if game.chapter_thread:
+        game.chapter_thread.join()
+

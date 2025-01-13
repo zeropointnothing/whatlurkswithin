@@ -1,5 +1,7 @@
 from wlw.utils.manager import Manager
 from wlw.utils.renderer import Renderer
+from wlw.utils.errors import ThreadError
+import threading
 
 class Chapter:
     """
@@ -19,3 +21,26 @@ class Chapter:
 
     def start(self):
         raise NotImplementedError(f"Chapter '{self.title}' does not implement start()!")
+    
+class ChapterThread(threading.Thread):
+    """
+    Custom thread that will raise any errors that occur to the main thread once
+    'join()' is called.
+
+    Should be used to ensure thread errors propagate to the main thread.
+    """
+    def run(self):
+        self.exc = None
+        try:
+            if hasattr(self, '_Thread__target'):
+                self.ret = self._Thread__target(*self._Thread__args, **self._Thread__kwargs)
+            else:
+                self.ret = self._target(*self._args, **self._kwargs)
+        except BaseException as e:
+            self.exc = e
+
+    def join(self, timeout=None):
+        super(ChapterThread, self).join(timeout)
+        if self.exc:
+            raise ThreadError("Chapter Thread crashed unexpectedly!") from self.exc
+        return self.ret
