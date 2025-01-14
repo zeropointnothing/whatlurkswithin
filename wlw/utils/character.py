@@ -35,6 +35,17 @@ class Character:
         self.__current_text = ""
         self.__current_text_index = 0
         self.__affinity = 0
+        self.__AFFINITY_LEVELS = {
+            "ADORED": 95,
+            "CHERISHED": 80,
+            "CLOSE": 50,
+            "TRUSTED": 20,
+            "NEUTRAL": 0,
+            "TENSE": -10,
+            "DISLIKED": -20,
+            "HATED": -50,
+            "DESPISED": -80
+        }
         self.__inventory = []
         self.__special = special
 
@@ -71,6 +82,28 @@ class Character:
         return self.__sex
 
     @property
+    def affinity_level(self):
+        """
+        Character affinity level.
+
+        For positive levels, the greatest value is returned.
+        For negatives, the lowest is returned.
+
+        Returns:
+        str: Character's affinity level.
+        """
+        affin = None
+
+        for level in self.__AFFINITY_LEVELS:
+            if self.__affinity >= 0 and self.__affinity >= self.__AFFINITY_LEVELS[level]:
+                return level
+            # negatives are reversed, so we want the last result.
+            elif self.__affinity < 0 and self.__affinity <= self.__AFFINITY_LEVELS[level]:
+                affin = level
+
+        return affin
+
+    @property
     def affinity(self):
         """
         Character affinity.
@@ -80,6 +113,13 @@ class Character:
         """
         return self.__affinity
     
+    @affinity.setter
+    def affinity(self, to: int):
+        if not isinstance(to, int):
+            raise TypeError(f"Affinity value must be 'int', not '{to.__class__.__name__}'")
+    
+        self.__affinity = to
+
     @property
     def special(self):
         """
