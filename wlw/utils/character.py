@@ -12,11 +12,12 @@ class Character:
     Special characters may be excluded from several functions, and should be used for characters such as the
     narrator or "system".
     """
-    def __init__(self, name: str, sex, special: bool = False, hidden: bool = False):
+    def __init__(self, name: str, sex, affinity: int, special: bool = False, hidden: bool = False):
         """
         Args:
         name (str): The character's name.
         sex (str): The character's sex. Should be either 'm' or 'f'.
+        affinity (int): The character's starting affinity.
         special (bool): Whether the character is considered 'special'.
         hidden (bool): Whether the character is 'hidden', and should fake their name as '...'.
 
@@ -30,11 +31,15 @@ class Character:
             raise ValueError(f"Invalid character sex '{sex}' for character '{name}'. Expected 'm' or 'f'.")
         else:
             self.__sex = sex.lower()
+        try:
+            affinity = int(str(affinity)) # account for bools, since they're a subclass of int
+        except ValueError as e:
+            raise TypeError(f"Starting affinity must be an 'int', not '{affinity.__class__.__name__}'.") from e
 
         self.__name = name
         self.__current_text = ""
         self.__current_text_index = 0
-        self.__affinity = 0
+        self.__affinity = affinity
         self.__AFFINITY_LEVELS = {
             "ADORED": 95,
             "CHERISHED": 80,
