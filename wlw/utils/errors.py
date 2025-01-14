@@ -19,3 +19,9 @@ class ThreadError(Exception):
     The thread encountered an unrecoverable error.
     """
     pass
+
+class LockError(Exception):
+    """
+    The requested function tried to invalidate a lock.
+    """
+    pass

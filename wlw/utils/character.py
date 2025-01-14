@@ -2,6 +2,7 @@
 Character class for WLW.
 """
 import time
+from wlw.utils.errors import *
 
 class Character:
     """
@@ -39,6 +40,7 @@ class Character:
         self.__name = name
         self.__current_text = ""
         self.__current_text_index = 0
+        self.__current_text_lock = False
         self.__affinity = affinity
         self.__AFFINITY_LEVELS = {
             "ADORED": 95,
@@ -152,6 +154,43 @@ class Character:
 
         return (self.__current_text, self.__current_text_index)
 
+    @property
+    def _is_locked(self) -> bool:
+        """
+        Whether or not the current character's text is 'locked'.
+
+        Returns:
+        bool: The character's lock status.
+        """
+        return self.__current_text_lock
+
+    def lock_speech(self):
+        """
+        Locks a character's speech, preventing it from being cleared.
+
+        Raises:
+        LockError: The character was already locked.
+        """
+        if self.__current_text_lock:
+            raise LockError(f"Character '{self.name}' is already locked!")
+
+        self.__current_text_lock = True
+
+    def unlock_speech(self):
+        """
+        Unlocks a character's speech.
+
+        To properly unlock the character, calls the `_mark_read_text` function.
+
+        Raises:
+        LockError: The character was already unlocked.
+        """
+        if not self.__current_text_lock:
+            raise LockError(f"Character '{self.name}' is already unlocked!")
+
+        self.__current_text_lock = False
+        self._mark_read_text()
+
     def _increment_speak_index(self, max: bool = False):
         """
         Increment the text index of the character's speech.
@@ -174,15 +213,19 @@ class Character:
         """
         self.__current_text = ""
 
-    def speak(self, text: str) -> None:
+    def speak(self, text: str, lock: bool = False) -> None:
         """
         Make a character 'speak'.
 
         Sets the character's internal speech variables to `text`, then waits
         for the text to be read, before returning.
 
+        If `lock` is set, this function will immediately return after locking the character's
+        speech.
+
         Args:
         text (str): The text for the character to speak.
+        lock (bool): Whether to lock the character's speech.
         """
 
         if not isinstance(text, str):
@@ -191,5 +234,8 @@ class Character:
         self.__current_text = text
         self.__current_text_index = 0
 
-        while self.__current_text:
+        if lock:
+            self.lock_speech()
+
+        while self.__current_text and not self.__current_text_lock:
             time.sleep(0.05)

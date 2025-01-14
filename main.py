@@ -70,8 +70,9 @@ class WhatLurksWithin:
             elif k in [curses.KEY_ENTER, 10]:
                 user_read = True
 
-            for char in self.manager.characters:
+            for i, char in enumerate(self.manager.characters):
                 saying = char.saying
+                # self.renderer.place_line(5, 5+i, f"{char.name} ({user_read}, {waiting_on_user}, {char.saying})")
 
                 if saying[0]:
                     if time.time() - last_char > self.TEXT_SPEED and not user_read: # normal increment
@@ -80,13 +81,13 @@ class WhatLurksWithin:
                     elif user_read and not waiting_on_user: # manual skip
                         char._increment_speak_index(True)
                         user_read = False
-                    elif user_read and waiting_on_user: # user read text
+                    elif user_read and waiting_on_user and not char._is_locked: # user read text
                         char._mark_read_text()
                         waiting_on_user = False
                         user_read = False
                         break
 
-                    self.renderer.place_line(0, 0, f"{char.name} ({user_read}, {waiting_on_user}):")
+                    self.renderer.place_line(0, 0, f"{char.name} ({user_read}, {waiting_on_user}, {char._is_locked}):")
                     self.stdscr.clrtoeol()
                     if saying[1] != -1:
                         self.renderer.place_line(0, 1, saying[0][:saying[1]])
