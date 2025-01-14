@@ -70,9 +70,8 @@ class WhatLurksWithin:
             elif k in [curses.KEY_ENTER, 10]:
                 user_read = True
 
-            for i, char in enumerate(self.manager.characters):
+            for char in self.manager.characters:
                 saying = char.saying
-                # self.renderer.place_line(5, 5+i, f"{char.name} ({user_read}, {waiting_on_user}, {char.saying})")
 
                 if saying[0]:
                     if time.time() - last_char > self.TEXT_SPEED and not user_read: # normal increment
