@@ -96,6 +96,8 @@ class WhatLurksWithin:
                     self.stdscr.clrtoeol()
                     # self.renderer.place_line(0, 0, f"{char.name}: {char.saying[0][:char.saying[1]]}")
 
+            user_read = False
+
             time.sleep(0.01)
         if self.chapter_thread:
             self.chapter_thread.join()
