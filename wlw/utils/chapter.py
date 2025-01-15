@@ -20,6 +20,11 @@ class Chapter:
         self.renderer = renderer
 
     def start(self):
+        """
+        Chapter entrypoint.
+
+        Should be overridden by any child classes.
+        """
         raise NotImplementedError(f"Chapter '{self.title}' does not implement start()!")
     
 class ChapterThread(threading.Thread):
