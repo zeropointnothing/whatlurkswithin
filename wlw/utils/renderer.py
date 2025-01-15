@@ -1,6 +1,11 @@
 import curses
 import time
-from wlw.utils import Character
+import logging
+from wlw.utils.logger import WLWLogger
+
+logging.setLoggerClass(WLWLogger)
+log = logging.getLogger("WLWLogger")
+log: WLWLogger
 
 class Renderer:
     """
@@ -84,6 +89,8 @@ class Renderer:
         self.__choices_response = -1
         self.__choices = []
 
+        log.debug("Cleared choices!")
+
     def set_choices(self, choices: list[dict]):
         """
         Set player choices.
@@ -106,6 +113,7 @@ class Renderer:
         self.clear_choices()
 
         self.__choices = choices[::-1]
+        log.debug(f"User choices is now: {self.__choices}")
 
     def wait_choice(self) -> str:
         """

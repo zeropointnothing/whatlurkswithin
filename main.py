@@ -1,6 +1,13 @@
 import curses
 import time
-import sys
+import logging, sys, platform
+
+# the logger needs to be initialized before we load any other modules that require it
+from wlw.utils.logger import WLWLogger
+logging.setLoggerClass(WLWLogger)
+log = logging.getLogger("WLWLogger")
+log: WLWLogger # getLogger wont expose our custom functions
+
 from wlw.utils.renderer import Renderer
 from wlw.utils.manager import Manager
 from wlw.utils.errors import *
@@ -14,6 +21,8 @@ class WhatLurksWithin:
         self.stdscr.keypad(True)
         curses.noecho()
 
+        self.VERSION = "0.0.0"
+
         self.renderer = Renderer(self.stdscr)
         self.manager = Manager("save.dat")
         self.chapter_thread = None
@@ -22,6 +31,10 @@ class WhatLurksWithin:
         self.TEXT_SPEED = 0.05
 
         self.current_choice = 0
+
+        log.debug(f"Terminal H/W: {(self.h, self.w)}")
+        log.debug(f"Text speed: {self.TEXT_SPEED}")
+        log.debug("Game initialized!")
 
     def play_chapter(self, start):
         """
@@ -32,7 +45,8 @@ class WhatLurksWithin:
         """
 
         # chapters rely on blocking functions, so it needs to run in the background
-        self.chapter_thread = ChapterThread(target=start, daemon=True, name="chapter-thread")
+        log.debug(f"Launching chapter '{start.__module__}/{start.__name__}'")
+        self.chapter_thread = ChapterThread(target=start, daemon=True, name=f"chapter-thread_{start.__module__.replace(".", "_")}")
         self.chapter_thread.start()
         last_char = time.time()
         user_read = False
@@ -188,10 +202,20 @@ class WhatLurksWithin:
             stdscr.refresh()
 
 if __name__ == "__main__":
+    log.info("Hello from WLW!")
+    
+    log.info(f"Running on platform: {platform.platform()}")
+    log.info(f"Using Python version: {platform.python_version()}")
+    log.info(f"At: {time.asctime()}")
+    # log.info(sys.)
     stdscr = curses.initscr()
     game = WhatLurksWithin(stdscr)
 
+    log.info(f"With game version: {game.VERSION}")
+    log.log_blank()
+
     try:
+        log.debug("Entering main menu.")
         user_choice = game.main_menu()
 
         game.stdscr.clear()
@@ -199,17 +223,23 @@ if __name__ == "__main__":
         game.current_choice = 0
 
         if user_choice == 1:
+            log.debug("Starting a new game...")
             game.game_loop()
         elif user_choice == 2:
+            log.debug("Loading game from save...")
             game.game_loop(True)
         else:
             pass
 
     except KeyboardInterrupt: # user wants out, so we shouldn't wait on the chapter thread
+        log.info("WLW exit via KeyboardInterrupt!")
         pass
     except Exception as e:
         curses.endwin()
-        raise e
+        log.critical("WLW encountered an unrecoverable error!")
+        log.error(e, exc_info=True)
+        sys.exit(1)
+        # raise e
 
     curses.endwin()
-
+    log.info("WLW exiting gracefully.")

@@ -1,7 +1,13 @@
 import pickle
 import os
+import logging
 from wlw.utils.character import Character
 from wlw.utils.errors import *
+from wlw.utils.logger import WLWLogger
+
+logging.setLoggerClass(WLWLogger)
+log = logging.getLogger("WLWLogger")
+log: WLWLogger
 
 class Manager:
     """
@@ -74,6 +80,7 @@ class Manager:
         Returns:
         Character: The Character object supplied to this method.
         """
+        log.debug(f"Registering character '{character.name}'...")
         self.__characters.append(character)
 
         return character
@@ -90,10 +97,12 @@ class Manager:
 
         Special characters are excluded from the save file and are not persistent.
         """
+        log.info("Saving game data...")
         with open(self.save_path, "wb") as f:
             pickle.dump({"current_section": self.__current_section, 
                          "characters": [_ for _ in self.__characters if not _.special],
                          "persistent": self.__persistent}, f)
+        log.info(f"Successfully wrote game data to '{self.save_path}'.")
 
     def load(self):
         """
@@ -102,7 +111,7 @@ class Manager:
         Raises:
         FileNotFoundError: The save file does not exist.
         """
-
+        log.info("Loading game data...")
         if not os.path.exists(self.save_path):
             raise FileNotFoundError(f"Save file '{self.save_path}' does not exist.")
 
@@ -111,3 +120,5 @@ class Manager:
             self.__characters = data["characters"]
             self.__persistent = data["persistent"]
             self.__current_section = data["current_section"]
+
+        log.info(f"Successfully read game data from '{self.save_path}'.")

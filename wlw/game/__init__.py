@@ -9,7 +9,13 @@ Additionally, they should define the constants CHAPTER_TITLE and CHAPTER_NUMBER.
 import os
 import importlib
 import inspect
+import logging
 from wlw.utils.chapter import Chapter
+from wlw.utils.logger import WLWLogger
+
+logging.setLoggerClass(WLWLogger)
+log = logging.getLogger("WLWLogger")
+log: WLWLogger
 
 # Dynamically import all chapter modules
 chapter_modules = []
@@ -21,12 +27,13 @@ for filename in os.listdir(os.path.dirname(__file__)):
             if hasattr(module, 'Main') and inspect.isclass(module.Main) and issubclass(module.Main, Chapter):
                 if hasattr(module, 'CHAPTER_NUMBER') and hasattr(module, 'CHAPTER_TITLE'):
                     chapter_modules.append(module)
+                    log.debug(f"Sucessfully loaded chapter {module_name}")
                 else:
-                    print(f"Warning: {module_name} does not define CHAPTER_NUMBER and CHAPTER_TITLE, skipping.")
+                    log.warning(f"{module_name} does not define CHAPTER_NUMBER and CHAPTER_TITLE, skipping.")
             else:
-                print(f"Warning: {module_name} does not define a valid Main class inheriting from Chapter, skipping.")
+                log.warning(f"{module_name} does not define a valid Main class inheriting from Chapter, skipping.")
         except Exception as e:
-            print(f"Error importing {module_name}: {e}")
+            log.warning(f"Error importing {module_name}: {e}")
 
 # Expose chapter classes
 __all__ = [module.__name__.split('.')[-1] for module in chapter_modules]
