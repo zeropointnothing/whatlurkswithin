@@ -25,3 +25,9 @@ class LockError(Exception):
     The requested function tried to invalidate a lock.
     """
     pass
+
+class BadSaveError(Exception):
+    """
+    The requested save could not be accessed.
+    """
+    pass

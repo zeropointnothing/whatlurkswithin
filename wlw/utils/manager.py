@@ -116,7 +116,10 @@ class Manager:
             raise FileNotFoundError(f"Save file '{self.save_path}' does not exist.")
 
         with open(self.save_path, "rb") as f:
-            data = pickle.load(f)
+            try:
+                data = pickle.load(f)
+            except pickle.UnpicklingError as e:
+                raise BadSaveError("Save file is invalid or corrupt!") from e
             self.__characters = data["characters"]
             self.__persistent = data["persistent"]
             self.__current_section = data["current_section"]
