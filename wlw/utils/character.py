@@ -37,7 +37,7 @@ class Character:
         except ValueError as e:
             raise TypeError(f"Starting affinity must be an 'int', not '{affinity.__class__.__name__}'.") from e
 
-        self.__name = name
+        self._name = name
         self.__current_text = ""
         self.__current_text_index = 0
         self.__current_text_lock = False
@@ -58,10 +58,17 @@ class Character:
 
     @property
     def name(self):
+        """
+        Character name.
+
+        Automatically switches between the 'hidden' view and normal view.
+
+        For raw name access, use the `_name` variable.
+        """
         if self.hidden:
-            return "..."
+            return "???"
         else:
-            return self.__name
+            return self._name
 
     @property
     def pronoun(self):

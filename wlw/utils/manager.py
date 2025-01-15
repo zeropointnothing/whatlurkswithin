@@ -80,7 +80,7 @@ class Manager:
         Returns:
         Character: The Character object supplied to this method.
         """
-        log.debug(f"Registering character '{character.name}'...")
+        log.debug(f"Registering character '{character._name}' (hidden: {character.hidden})...")
         self.__characters.append(character)
 
         return character

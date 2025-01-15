@@ -45,7 +45,7 @@ class WhatLurksWithin:
         """
 
         # chapters rely on blocking functions, so it needs to run in the background
-        log.debug(f"Launching chapter {start.__module__}/{start.__name__}")
+        log.info(f"Launching chapter {start.__module__} ({start.__name__})")
         self.chapter_thread = ChapterThread(target=start, daemon=True, name=f"chapter-thread_{start.__module__.replace(".", "_")}")
         self.chapter_thread.start()
         last_char = time.time()
@@ -114,6 +114,7 @@ class WhatLurksWithin:
 
             time.sleep(0.01)
         if self.chapter_thread:
+            log.info(f"Waiting on chapter {start.__module__} ({start.__name__}) to close...")
             self.chapter_thread.join()
 
     def game_loop(self, loading: bool = False):
@@ -133,6 +134,7 @@ class WhatLurksWithin:
             self.manager.load()
 
         for chap in chapter_modules:
+            log.debug(f"Initializing chapter {chap.__name__}")
             if loading and chap.CHAPTER_TITLE == self.manager.section["chapter"]:
                 # print(f"SAVE: {chap.CHAPTER_TITLE}/{self.manager.section["section"]}")
                 chapter_instance = chap.Main(self.manager, self.renderer)
