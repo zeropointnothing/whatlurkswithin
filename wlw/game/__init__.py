@@ -27,7 +27,7 @@ for filename in os.listdir(os.path.dirname(__file__)):
             if hasattr(module, 'Main') and inspect.isclass(module.Main) and issubclass(module.Main, Chapter):
                 if hasattr(module, 'CHAPTER_NUMBER') and hasattr(module, 'CHAPTER_TITLE'):
                     chapter_modules.append(module)
-                    log.debug(f"Sucessfully loaded chapter {module_name}")
+                    log.debug(f"Successfully loaded chapter {module_name}")
                 else:
                     log.warning(f"{module_name} does not define CHAPTER_NUMBER and CHAPTER_TITLE, skipping.")
             else:

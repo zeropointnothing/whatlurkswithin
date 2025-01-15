@@ -45,7 +45,7 @@ class WhatLurksWithin:
         """
 
         # chapters rely on blocking functions, so it needs to run in the background
-        log.debug(f"Launching chapter '{start.__module__}/{start.__name__}'")
+        log.debug(f"Launching chapter {start.__module__}/{start.__name__}")
         self.chapter_thread = ChapterThread(target=start, daemon=True, name=f"chapter-thread_{start.__module__.replace(".", "_")}")
         self.chapter_thread.start()
         last_char = time.time()
@@ -211,7 +211,7 @@ if __name__ == "__main__":
     stdscr = curses.initscr()
     game = WhatLurksWithin(stdscr)
 
-    log.info(f"With game version: {game.VERSION}")
+    log.info(f"WHAT LURKS WITHIN v{game.VERSION}")
     log.log_blank()
 
     try:
