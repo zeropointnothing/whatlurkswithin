@@ -1,6 +1,7 @@
 import curses
 import time
 import logging
+import textwrap
 from wlw.utils.logger import WLWLogger
 
 logging.setLoggerClass(WLWLogger)
@@ -68,19 +69,57 @@ class Renderer:
     def choices(self):
         return self.__choices
 
-    def place_line(self, x, y, text: str, color = -1, italic: bool = False, bold: bool = False):
-        if color != -1 and italic: # color/italics
-            self.stdscr.addstr(y, x, text, color | curses.A_ITALIC)
-        elif color != -1 and bold: # color/bold
-            self.stdscr.addstr(y, x, text, color | curses.A_BOLD)
-        elif italic: # italics
-            self.stdscr.addstr(y, x, text, curses.A_ITALIC)
-        elif bold: # bold
-            self.stdscr.addstr(y, x, text, curses.A_BOLD)
-        elif color != -1: # color only
-            self.stdscr.addstr(y, x, text, color)
-        else:
-            self.stdscr.addstr(y, x, text)
+    def place_line(self, x: int, y: int, text: str, wrap: bool = False, color = -1, italic: bool = False, bold: bool = False):
+        """
+        Fancy wrapper for `stdscr.addstr`.
+
+        Add a line of text to the screen.
+
+        If `wrap` is set, the text will automatically be wrapped and placed on the next line.
+
+        Accepts styling parameters via `color`, `italic`, and `bold`.
+
+        Args:
+        x (int): X coord.
+        y (int): Y coord.
+        text (str): The text to place.
+        wrap (bool): Whether to wrap the text before placing.
+        color (int): The color to place with.
+        italic (bool): Place text with the `A_ITALIC` styling.
+        bold (bool): Place the text with the `A_BOLD` styling.
+        """
+        text = textwrap.wrap(text, self.stdscr.getmaxyx()[1]) if wrap else [text]
+
+        for i, line in enumerate(text):
+            if color != -1 and italic: # color/italics
+                self.stdscr.addstr(y+i, x, line, color | curses.A_ITALIC)
+            elif color != -1 and bold: # color/bold
+                self.stdscr.addstr(y+i, x, line, color | curses.A_BOLD)
+            elif italic: # italics
+                self.stdscr.addstr(y+i, x, line, curses.A_ITALIC)
+            elif bold: # bold
+                self.stdscr.addstr(y+i, x, line, curses.A_BOLD)
+            elif color != -1: # color only
+                self.stdscr.addstr(y+i, x, line, color)
+            else:
+                self.stdscr.addstr(y+i, x, line)
+
+            self.stdscr.clrtoeol()
+        
+    def clear_lines(self, fy: int, ty: int):
+        """
+        Clear lines starting from `fy` and up to `ty`.
+
+        Useful for when you need to clear large portions of the screen, but not the entire screen.
+        """
+
+        old_pos = self.stdscr.getyx()
+
+        for i in range(fy, ty):
+            self.stdscr.move(i, 0)
+            self.stdscr.clrtoeol()
+        
+        self.stdscr.move(*old_pos)
 
     def clear_choices(self):
         """
