@@ -31,3 +31,9 @@ class BadSaveError(Exception):
     The requested save could not be accessed.
     """
     pass
+
+class InvalidTargetError(Exception):
+    """
+    Target conflict.
+    """
+    pass

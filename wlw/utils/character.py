@@ -13,7 +13,7 @@ class Character:
     Special characters may be excluded from several functions, and should be used for characters such as the
     narrator or "system".
     """
-    def __init__(self, name: str, sex, affinity: int, special: bool = False, hidden: bool = False):
+    def __init__(self, name: str, sex: str = "m", affinity: int = 0, special: bool = False, hidden: bool = False):
         """
         Args:
         name (str): The character's name.
