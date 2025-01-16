@@ -99,7 +99,8 @@ class Manager:
         """
         log.info("Saving game data...")
         with open(self.save_path, "wb") as f:
-            pickle.dump({"current_section": self.__current_section, 
+            pickle.dump({"!!WLW-SAVE-FILE_DO-NOT-EDIT!!": True,
+                         "current_section": self.__current_section, 
                          "characters": [_ for _ in self.__characters if not _.special],
                          "persistent": self.__persistent}, f)
         log.info(f"Successfully wrote game data to '{self.save_path}'.")
