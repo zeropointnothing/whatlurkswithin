@@ -19,6 +19,8 @@ class Manager:
     def __init__(self, save_path: str):
         self.save_path = save_path
 
+        self.__obfuscation_key = save_path
+
         self.__current_section = {"chapter": None, "section": None}
         self.__characters: list[Character] = [] # game characters
         self.__persistent: dict = {} # persistent data
@@ -81,15 +83,38 @@ class Manager:
         Character: The Character object supplied to this method.
         """
         log.debug(f"Registering character '{character._name}' (hidden: {character.hidden})...")
-        self.__characters.append(character)
+        character_match = [_ for _ in self.__characters if _.name == character.name]
 
-        return character
+        if character_match:
+            log.debug(f"Using saved values for '{character._name}', already present.")
+            return character_match[0]
+        else:
+            self.__characters.append(character)
+            return character
 
     def get_character(self, name: str):
         for char in self.__characters:
             if char.name == name:
                 return char
         raise CharacterNotFoundError(f"No such character '{name}'.")
+
+    def _xor_obfuscate(self, data: bytes) -> bytes:
+        """
+        (de)Obfuscate data using XOR with the obfuscation key.
+
+        Mainly used to discourage editing/save-scumming by making the reverse process
+        more annoying, though not impossible.
+
+        As long as the data hasn't been modified, should reverse any obfuscated bytes and vice-versa.
+
+        Args:
+        data (bytes): Data to (de)obfuscate.
+
+        Returns:
+        bytes: (de)Obfuscated data.
+        """
+        key = self.__obfuscation_key.encode()
+        return bytes([b ^ key[i % len(key)] for i, b in enumerate(data)])
 
     def save(self):
         """
@@ -99,10 +124,13 @@ class Manager:
         """
         log.info("Saving game data...")
         with open(self.save_path, "wb") as f:
-            pickle.dump({"!!WLW-SAVE-FILE_DO-NOT-EDIT!!": True,
-                         "current_section": self.__current_section, 
-                         "characters": [_ for _ in self.__characters if not _.special],
-                         "persistent": self.__persistent}, f)
+            save = pickle.dumps({
+                "current_section": self.__current_section, 
+                "characters": [_ for _ in self.__characters if not _.special],
+                "persistent": self.__persistent})
+            
+            pickle.dump({"!!WLW-SAVE-FILE_DO-NOT-EDIT!!": self._xor_obfuscate(save)}, f)
+
         log.info(f"Successfully wrote game data to '{self.save_path}'.")
 
     def load(self):
@@ -118,7 +146,8 @@ class Manager:
 
         with open(self.save_path, "rb") as f:
             try:
-                data = pickle.load(f)
+                data = pickle.loads(self._xor_obfuscate(pickle.load(f)["!!WLW-SAVE-FILE_DO-NOT-EDIT!!"]))
+                log.debug(data)
             except pickle.UnpicklingError as e:
                 raise BadSaveError("Save file is invalid or corrupt!") from e
             self.__characters = data["characters"]
