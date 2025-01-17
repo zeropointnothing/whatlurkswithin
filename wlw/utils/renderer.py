@@ -69,7 +69,7 @@ class Renderer:
     def choices(self):
         return self.__choices
 
-    def place_line(self, x: int, y: int, text: str, wrap: bool = False, color = -1, italic: bool = False, bold: bool = False):
+    def place_line(self, x: int, y: int, text: str, wrap: int = 0, color = -1, italic: bool = False, bold: bool = False):
         """
         Fancy wrapper for `stdscr.addstr`.
 
@@ -83,12 +83,12 @@ class Renderer:
         x (int): X coord.
         y (int): Y coord.
         text (str): The text to place.
-        wrap (bool): Whether to wrap the text before placing.
+        wrap (int): How far to wrap the string, if at all.
         color (int): The color to place with.
         italic (bool): Place text with the `A_ITALIC` styling.
         bold (bool): Place the text with the `A_BOLD` styling.
         """
-        text = textwrap.wrap(text, self.stdscr.getmaxyx()[1]) if wrap else [text]
+        text = textwrap.wrap(text, wrap) if wrap else [text]
 
         for i, line in enumerate(text):
             if color != -1 and italic: # color/italics

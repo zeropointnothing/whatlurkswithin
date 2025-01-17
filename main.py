@@ -96,9 +96,9 @@ class WhatLurksWithin:
 
                     self.renderer.place_line(0, 0, f"{char.name} ({user_read}, {waiting_on_user}, {char._is_locked}):")
                     if saying[1] != -1:
-                        self.renderer.place_line(0, 1, saying[0][:saying[1]])
+                        self.renderer.place_line(0, 1, saying[0][:saying[1]], self.w)
                     else:
-                        self.renderer.place_line(0, 1, saying[0])
+                        self.renderer.place_line(0, 1, saying[0], self.w)
                         waiting_on_user = True
                     # self.renderer.place_line(0, 0, f"{char.name}: {char.saying[0][:char.saying[1]]}")
 
@@ -109,9 +109,9 @@ class WhatLurksWithin:
             for i, choice in enumerate(self.renderer.choices):
                 midx = (self.w//2)-(len(choice["title"])//2)
                 if self.current_choice == i:
-                    self.renderer.place_line(midx, midy-i, choice["title"], False, self.renderer.color_black_white, bold=True)
+                    self.renderer.place_line(midx, midy-i, choice["title"], 0, self.renderer.color_black_white, bold=True)
                 else:
-                    self.renderer.place_line(midx, midy-i, choice["title"], False, self.renderer.color_white_black, italic=True)
+                    self.renderer.place_line(midx, midy-i, choice["title"], 0, self.renderer.color_white_black, italic=True)
 
 
             time.sleep(0.01)
@@ -176,9 +176,9 @@ class WhatLurksWithin:
             for i, choice in enumerate(self.renderer.choices):
                 midx = (self.w//2)-(len(choice["title"])//2)
                 if self.current_choice == i:
-                    self.renderer.place_line(midx, midy-i, choice["title"], False, self.renderer.color_black_white, bold=True)
+                    self.renderer.place_line(midx, midy-i, choice["title"], 0, self.renderer.color_black_white, bold=True)
                 else:
-                    self.renderer.place_line(midx, midy-i, choice["title"], False, self.renderer.color_white_black, italic=True)
+                    self.renderer.place_line(midx, midy-i, choice["title"], 0, self.renderer.color_white_black, italic=True)
 
             self.renderer.place_line((self.w//2)-(len(title)//2), 0, str(title))
             self.stdscr.clrtoeol()
