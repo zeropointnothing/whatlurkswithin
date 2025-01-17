@@ -40,6 +40,7 @@ class Character:
         self._name = name
         self.__current_text = ""
         self.__current_text_index = 0
+        self.__current_text_thought = False
         self.__current_text_lock = False
         self.__affinity = affinity
         self.__AFFINITY_LEVELS = {
@@ -147,19 +148,19 @@ class Character:
         return self.__special
 
     @property
-    def saying(self) -> tuple[str, int]:
+    def saying(self) -> tuple[str, int, bool]:
         """
-        What the character is saying, and far they are in saying it.
+        What the character is saying, how far they are in saying it, and whether it's a thought.
         
         When the text has been fully read, the index will be -1.
 
         Returns:
-        tuple: Current text, current text index.
+        tuple: Current text, current text index, is_thought.
         """
         if self.__current_text_index > len(self.__current_text):
-            return (self.__current_text, -1)
+            return (self.__current_text, -1, self.__current_text_thought)
 
-        return (self.__current_text, self.__current_text_index)
+        return (self.__current_text, self.__current_text_index, self.__current_text_thought)
 
     @property
     def _is_locked(self) -> bool:
@@ -220,7 +221,7 @@ class Character:
         """
         self.__current_text = ""
 
-    def speak(self, text: str, lock: bool = False) -> None:
+    def speak(self, text: str, thought: bool = False, lock: bool = False) -> None:
         """
         Make a character 'speak'.
 
@@ -230,8 +231,11 @@ class Character:
         If `lock` is set, this function will immediately return after locking the character's
         speech.
 
+        If `thought` is set, the renderer will likely display it with italics instead of quotation marks.
+
         Args:
         text (str): The text for the character to speak.
+        thought (bool): Whether the text is a thought.
         lock (bool): Whether to lock the character's speech.
         """
 
@@ -239,6 +243,7 @@ class Character:
             raise TypeError(f"Invalid type '{text.__class__.__name__}'. Expected 'str'")
 
         self.__current_text = text
+        self.__current_text_thought = thought
         self.__current_text_index = 0
 
         if lock:

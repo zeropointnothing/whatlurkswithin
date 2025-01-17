@@ -49,17 +49,16 @@ class WhatLurksWithin:
         self.chapter_thread = ChapterThread(target=start, daemon=True, name=f"chapter-thread_{start.__module__.replace(".", "_")}")
         self.chapter_thread.start()
         last_char = time.time()
-        wrap_num = 0
         user_read = False
         waiting_on_user = False
 
         while self.chapter_thread.is_alive():
+            k = self.stdscr.getch()
             newh, neww = stdscr.getmaxyx()
             if newh != self.h or neww != self.w:
                 self.stdscr.clear()
             self.h, self.w = newh, neww
 
-            k = self.stdscr.getch()
 
             # user input
             # 'choice' input
@@ -90,15 +89,20 @@ class WhatLurksWithin:
                         char._mark_read_text()
                         waiting_on_user = False
                         user_read = False
-                        self.renderer.clear_lines(1, self.h) # text wrapping might have left some stuff behind
-                        self.stdscr.move(1, 0)
+                        # self.renderer.clear_lines(1, self.h) # text wrapping might have left some stuff behind
+                        self.stdscr.move(2, 2)
                         break
 
-                    self.renderer.place_line(0, 0, f"{char.name} ({user_read}, {waiting_on_user}, {char._is_locked}):")
+                    self.renderer.draw_box(0, 0, self.w-2, self.h-1)
+                    self.renderer.place_line(1, 0, f" {char.name} ({user_read}, {waiting_on_user}, {char._is_locked}) ")
+
+                    prefix = "\"" if not saying[2] else ""
+                    italic = True if saying[2] else False
+
                     if saying[1] != -1:
-                        self.renderer.place_line(0, 1, saying[0][:saying[1]], self.w)
-                    else:
-                        self.renderer.place_line(0, 1, saying[0], self.w)
+                        self.renderer.place_line(2, 2, f"{prefix}{saying[0][:saying[1]]}{prefix}", self.w-4, italic=italic)
+                    elif saying[1] == -1:
+                        self.renderer.place_line(2, 2, f"{prefix}{saying[0]}{prefix}", self.w-4, italic=italic)
                         waiting_on_user = True
                     # self.renderer.place_line(0, 0, f"{char.name}: {char.saying[0][:char.saying[1]]}")
 
