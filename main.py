@@ -46,7 +46,7 @@ class WhatLurksWithin:
 
         # chapters rely on blocking functions, so it needs to run in the background
         log.info(f"Launching chapter {start.__module__} ({start.__name__})")
-        self.chapter_thread = ChapterThread(target=start, daemon=True, name=f"chapter-thread_{start.__module__.replace(".", "_")}")
+        self.chapter_thread = ChapterThread(target=start, daemon=True, name=f"chapter-thread_{start.__module__.replace('.', '_')}")
         self.chapter_thread.start()
         last_char = time.time()
         user_read = False
