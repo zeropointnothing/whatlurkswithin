@@ -270,7 +270,7 @@ class Battle:
         """
         Trigger `character`'s turn, calling all buff's `on_turn` method.
         """
-        print(f"TURN: {character.name}")
+        # print(f"TURN: {character.name}")
 
         for buff in character.buffs:
             buff.on_turn()
@@ -285,7 +285,7 @@ class Battle:
         Buff attacks must have a target, even if they are type a_ally/a_foe, however damage will only be dealt if that Attack
         has any.
         """
-        print(f"{by.name} -> {whom.name} ({using.name})")
+        # print(f"{by.name} -> {whom.name} ({using.name})")
 
         if using not in by.attacks:
             raise ValueError(f"Attack '{using.name}' does not belong to character '{by.name}'!")
@@ -339,10 +339,10 @@ class EvadeBuff(Buff):
         super().__init__("Evade", "Enhanced knowledge of the battlefield allows this character to dodge attacks.", buff_length)
 
     def on_attacked(self, original_damage):
-        print(f"attacked! ({self.name}:{original_damage})")
+        # print(f"attacked! ({self.name}:{original_damage})")
 
         if random.randint(1, 3) == 1:
-            print("evade!")
+            # print("evade!")
             return 0
         else:
             return original_damage
@@ -353,6 +353,6 @@ class WeakenedBuff(Buff):
         super().__init__("Weakened", "This character takes +2 extra damage... Ouch!", buff_length)
 
     def on_attacked(self, original_damage):
-        print(f"attacked! ({self.name}:{original_damage})")
+        # print(f"attacked! ({self.name}:{original_damage})")
 
         return original_damage + 2
