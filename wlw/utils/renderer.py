@@ -25,11 +25,13 @@ class Renderer:
         curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
         curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_BLACK)
         curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_WHITE)
+        curses.init_pair(5, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
 
         self.color_red_black = curses.color_pair(1)
         self.color_black_white = curses.color_pair(2)
         self.color_white_black = curses.color_pair(3)
         self.color_yellow_white = curses.color_pair(4)
+        self.color_black_magenta = curses.color_pair(5)
         
         self.__choices = []
         self.__choices_response = -1
@@ -104,8 +106,26 @@ class Renderer:
             else:
                 self.stdscr.addstr(y+i, x, line)
 
-            self.stdscr.clrtoeol()
-        
+            # self.stdscr.clrtoeol()
+            
+    def draw_box(self, sx: int, sy: int, ex: int, ey:int):
+        """
+        Draw a box from (`sx`, `sy`) to (`ex`, `ey`).
+
+        Args:
+        sx (int): Starting x.
+        sy (int): Starting y.
+        ex (int): Ending x.
+        ey (int): Ending y.
+        """
+        for y in range(sy, ey):
+            if y == sy:
+                self.place_line(sx, y, "┌"+"─"*(ex-sx)+"┐")
+            elif y == ey-1:
+                self.place_line(sx, y, "└"+"─"*(ex-sx)+"┘")
+            else:
+                self.place_line(sx, y, "│"+" "*(ex-sx)+"│")
+
     def clear_lines(self, fy: int, ty: int):
         """
         Clear lines starting from `fy` and up to `ty`.
