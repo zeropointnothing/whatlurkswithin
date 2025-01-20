@@ -83,7 +83,7 @@ class Manager:
         Character: The Character object supplied to this method.
         """
         log.debug(f"Registering character '{character._name}' (hidden: {character.hidden})...")
-        character_match = [_ for _ in self.__characters if _.name == character.name]
+        character_match = [_ for _ in self.__characters if _._name == character._name]
 
         if character_match:
             log.debug(f"Using saved values for '{character._name}', already present.")
