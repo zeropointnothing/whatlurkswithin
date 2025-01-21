@@ -148,7 +148,7 @@ class WhatLurksWithin:
                 title_color = self.renderer.color_green_black if display in batt.allies else self.renderer.color_red_black
                 title = f"\"{display.name}\" ({battle_party.index(display)})"
 
-                self.renderer.draw_box(display_padding_x, display_padding_y, self.w-display_padding_x, h-display_padding_y)
+                self.renderer.draw_box(display_padding_x, display_padding_y, self.w-display_padding_x, self.h-display_padding_y)
                 self.renderer.place_line((self.w//2)-len(title)//2, display_padding_y+1, title, color=title_color) # title
 
                 self.renderer.place_line(display_padding_x+1, display_padding_y+3, "─"*(self.w-display_padding_x*2)) # line
