@@ -1,6 +1,7 @@
 import curses
 import time
 import logging, sys, platform
+import random
 
 # the logger needs to be initialized before we load any other modules that require it
 from wlw.utils.logger import WLWLogger
@@ -12,6 +13,7 @@ from wlw.utils.renderer import Renderer
 from wlw.utils.manager import Manager
 from wlw.utils.errors import *
 from wlw.utils.chapter import ChapterThread
+from wlw.utils.battle import Battle, BattleCharacter
 from wlw.game import chapter_modules
 
 class WhatLurksWithin:
@@ -35,6 +37,230 @@ class WhatLurksWithin:
         log.debug(f"Terminal H/W: {(self.h, self.w)}")
         log.debug(f"Text speed: {self.TEXT_SPEED}")
         log.debug("Game initialized!")
+
+    def battsys(self, batt: Battle):
+        """
+        BATTleSYStem.
+
+        Switches the Main renderer over to a basic battle system.
+
+        Automatically returns the result of the battle.
+
+        Args:
+        batt (Battle): The battle to render.
+
+        Returns:
+        int: The battle's result.
+        """
+        battle_party = batt.allies+batt.foes
+
+        acted = False
+        turn = 0
+
+        user_input = ""
+        user_select = 0
+        command = ""
+
+        mode = "command" # command, select, view
+        last_render = time.time()
+
+        display = None
+        display_padding_x = 5
+        display_padding_y = 2
+
+        while True:
+            if acted:
+                batt.next_turn()
+                turn += 1
+                acted = False
+
+            # height stuff
+            k = self.renderer.stdscr.getch()
+            newh, neww = stdscr.getmaxyx()
+            if newh != self.h or neww != self.w:
+                self.renderer.stdscr.clear()
+            self.h, self.w = newh, neww
+            h_center = self.h//2
+            w_center = self.w//2
+
+            if all([not _.alive for _ in batt.allies]): # all allies down
+                return 0
+            if all([not _.alive for _ in batt.foes]): # all foes down (yay!)
+                return 1
+
+
+            # render foes
+            box_number = len(batt.foes)
+            box_width = max([len(_.name) for _ in battle_party]) + 5 + len(str(len(battle_party))) # auto resize based on maximum name length
+            box_height = 10
+            box_offset = (self.w-(box_number*box_width))//(box_number+1)
+
+            draw_startx = box_offset
+            for i, foe in enumerate(batt.foes):
+                title = f"> {battle_party.index(foe)}:{foe.name} <" if foe == battle_party[batt.turn] else f"{battle_party.index(foe)}:{foe.name}"
+                color = self.renderer.color_red_black if foe == battle_party[user_select] else -1
+
+                draw_starty = 0
+
+                self.renderer.draw_box(draw_startx, draw_starty, draw_startx+box_width, draw_starty+box_height)
+                self.renderer.place_line((draw_startx+1)+(box_width//2)-(len(title)//2), draw_starty+1, title, color=color)
+                self.renderer.place_line((draw_startx+1), draw_starty+2, "─"*box_width)
+                self.renderer.place_line((draw_startx+1), draw_starty+3, f"HP:{foe.hitpoints}" if foe.hitpoints > 0 else "!DOWN!")
+                self.renderer.place_line((draw_startx+1), draw_starty+5, "─"*box_width)
+
+                for b, buff in enumerate(foe.buffs):
+                    self.renderer.place_line((draw_startx+1), draw_starty+6+b, f"{buff.name}:{buff.buff_length}T")
+                draw_startx += box_width+box_offset
+
+            # render midtext
+            message = f"TURN {turn+1} ({battle_party[batt.turn].name})"
+            self.renderer.stdscr.move(h_center-1, 0)
+            self.renderer.stdscr.clrtoeol()
+            self.renderer.place_line(w_center-len(message)//2, h_center-1, message)
+            # battle messages
+            message = f"{batt.get_display(time.time()-last_render)[0]}"
+            self.renderer.stdscr.move(h_center, 0)
+            self.renderer.stdscr.clrtoeol()
+            self.renderer.place_line(w_center-len(message)//2, h_center, message)
+
+            # render allies
+            box_number = len(batt.allies)
+            box_offset = (self.w-(box_number*box_width))//(box_number+1)
+
+            draw_startx = box_offset
+            for i, ally in enumerate(batt.allies):
+                title = f"> {battle_party.index(ally)}:{ally.name} <" if ally == battle_party[batt.turn] else f"{battle_party.index(ally)}:{ally.name}"
+                color = self.renderer.color_green_black if ally == battle_party[user_select] else -1
+
+                draw_starty = self.h-box_height-1
+                self.renderer.draw_box(draw_startx, draw_starty, draw_startx+box_width, draw_starty+box_height)
+                self.renderer.place_line((draw_startx+1)+(box_width//2)-(len(title)//2), draw_starty+1, title, color=color)
+                self.renderer.place_line((draw_startx+1), draw_starty+2, "─"*box_width)
+                self.renderer.place_line((draw_startx+1), draw_starty+3, f"HP:{ally.hitpoints}" if ally.hitpoints > 0 else "!DOWN!")
+                self.renderer.place_line((draw_startx+1), draw_starty+5, "─"*box_width)
+
+                for b, buff in enumerate(ally.buffs):
+                    self.renderer.place_line((draw_startx+1), draw_starty+6+b, f"{buff.name}:{buff.buff_length}T")
+                draw_startx += box_width+box_offset
+
+            # render visuals
+            if mode == "visual" and isinstance(display, BattleCharacter):
+                title_color = self.renderer.color_green_black if display in batt.allies else self.renderer.color_red_black
+                title = f"\"{display.name}\" ({battle_party.index(display)})"
+
+                self.renderer.draw_box(display_padding_x, display_padding_y, self.w-display_padding_x, h-display_padding_y)
+                self.renderer.place_line((self.w//2)-len(title)//2, display_padding_y+1, title, color=title_color) # title
+
+                self.renderer.place_line(display_padding_x+1, display_padding_y+3, "─"*(self.w-display_padding_x*2)) # line
+                stats_title = " STATS "
+                self.renderer.place_line((self.w//2)-(len(stats_title)//2), display_padding_y+3, stats_title)
+                self.renderer.place_line(display_padding_x+1, display_padding_y+4, f"HP:{display.hitpoints}") # HP
+
+                self.renderer.place_line(display_padding_x+1, display_padding_y+6, "─"*(self.w-display_padding_x*2)) # line
+                buff_title = " ACTIVE BUFFS "
+                self.renderer.place_line((self.w//2)-(len(buff_title)//2), display_padding_y+6, buff_title)
+                for i, buff in enumerate(display.buffs):
+                    self.renderer.place_line(display_padding_x+1, display_padding_y+7+i, f"{i} - {buff.name}:{buff.buff_length}T")
+
+                self.renderer.place_line(display_padding_x+1, display_padding_y+8+len(display.buffs), "─"*(self.w-display_padding_x*2)) # line
+                atk_title = " ATTACKS "
+                self.renderer.place_line((self.w//2)-(len(atk_title)//2), display_padding_y+8+len(display.buffs), atk_title)
+                for i, atk in enumerate(display.attacks):
+                    self.renderer.place_line(display_padding_x+1, display_padding_y+9+len(display.buffs)+i, f"{atk.name} ({atk.damage}/{atk.buff.name if atk.buff else "NONE"}): '{atk.description}'")
+
+            # render ui
+            if mode == "command":
+                self.renderer.place_line(0, self.h-1, f"COMMAND MODE >>> {user_input}")
+                self.renderer.stdscr.clrtoeol()
+            elif mode == "visual":
+                self.renderer.place_line(0, self.h-1, f"VISUAL MODE ~~~")
+                self.renderer.stdscr.clrtoeol()
+
+
+            # auto foe attacking stuff
+            if (battle_party[batt.turn] in batt.foes and battle_party[batt.turn].hitpoints > 0) and not batt.get_display()[1]:
+                atk_u = battle_party[batt.turn].attacks[random.randint(0, len(battle_party[batt.turn].attacks)-1)]
+                atk_w = random.choice([_ for _ in batt.allies if _.hitpoints > 0])
+
+                # print(f"CPU  ATK: {battle_party[batt.turn].name} -> {atk_w.name}, {atk_u.name}")
+
+                batt.attack(atk_w, battle_party[batt.turn], atk_u)
+                batt.set_display(f"'{battle_party[batt.turn].name} ({batt.turn})' uses '{atk_u.name}' on '{atk_w.name}'!", 2)
+
+                acted = True
+            elif battle_party[batt.turn] in batt.foes and not batt.get_display()[1]: # skip dead 
+                batt.set_display(f"'{battle_party[batt.turn].name} ({batt.turn})' skipped!", 1)
+                acted = True
+
+            # skip dead allies
+            if (battle_party[batt.turn] in batt.allies and battle_party[batt.turn].hitpoints <= 0):
+                acted = True
+                continue
+
+            # prevent user interaction on enemy turns
+            if battle_party[batt.turn] in batt.foes:
+                last_render = time.time()
+                time.sleep(0.05)
+                continue
+
+            elif command == "view":
+                mode = "visual"
+                command = ""
+                display = battle_party[user_select]
+            elif command.startswith("attack "):
+                by = battle_party[batt.turn]
+                whom = battle_party[user_select]
+
+                if whom.hitpoints <= 0:
+                    batt.set_display(f"'{whom.name}' is already down!", 2)
+                    command = ""
+                    continue
+
+                try:
+                    attack = by.get_attack(command.split(" ")[1])
+                    batt.set_display(f"'{by.name} ({batt.turn})' uses '{attack.name}' on '{whom.name}'!", 2)
+                    
+                    batt.attack(whom, by, attack)
+                    acted = True
+                except ValueError:
+                    batt.set_display(f"No such attack '{command.split(" ")[1]}'!", 2)
+                command = ""
+            elif command == "skip":
+                acted = True
+                command = ""
+
+            if k in [8, 127, curses.KEY_BACKSPACE]: # backspace (duh)
+                user_input = user_input[:len(user_input)-1]
+            elif k == curses.KEY_RIGHT:
+                user_select += 1
+                user_select %= len(battle_party)
+            elif k == curses.KEY_LEFT:
+                user_select -= 1
+                user_select %= len(battle_party)
+            elif k in [10, 13, curses.KEY_ENTER] and mode == "command":
+                command = user_input
+                user_input = ""
+                
+            elif 0 <= k <= 255:  # ASCII range
+                char = chr(k)
+                if char.isalpha() or char.isdigit() or char == " ":  # Check if it's an alphabetic character
+                    user_input = user_input + char
+                    k = -1
+                elif k == 27:  # ESC key
+                    self.renderer.stdscr.clear()
+                    if mode == "visual":
+                        mode = "command"
+                        user_input = ""
+                        command = ""
+                        display = None
+                    else:
+                        raise KeyboardInterrupt("ESC Pressed.")
+                else:
+                    pass
+
+            last_render = time.time()
+            time.sleep(0.05)
+
 
     def play_chapter(self, start):
         """
@@ -74,6 +300,14 @@ class WhatLurksWithin:
             # normal input
             elif k in [curses.KEY_ENTER, 10]:
                 user_read = True
+
+            if self.renderer.battle:
+                self.stdscr.clear()
+                log.debug("Starting battle!")
+                out = self.battsys(self.renderer.battle)
+                log.debug(f"Battle ended with result: {out}")
+                self.renderer.battle_result = out
+                self.stdscr.clear()
 
             for char in self.manager.characters:
                 saying = char.saying

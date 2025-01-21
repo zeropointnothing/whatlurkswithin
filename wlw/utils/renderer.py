@@ -3,6 +3,7 @@ import time
 import logging
 import textwrap
 from wlw.utils.logger import WLWLogger
+from wlw.utils.battle import Battle
 
 logging.setLoggerClass(WLWLogger)
 log = logging.getLogger("WLWLogger")
@@ -35,6 +36,9 @@ class Renderer:
         self.color_yellow_white = curses.color_pair(5)
         self.color_black_magenta = curses.color_pair(6)
         
+        self.__battle = None
+        self.__battle_result = -1
+
         self.__choices = []
         self.__choices_response = -1
 
@@ -72,6 +76,19 @@ class Renderer:
     @property
     def choices(self):
         return self.__choices
+    
+    @property
+    def battle(self):
+        return self.__battle
+    
+    @property
+    def battle_result(self):
+        return self.__battle_result
+    
+    @battle_result.setter
+    def battle_result(self, to: int):
+        self.__battle_result = to
+        self.__battle = None
 
     def place_line(self, x: int, y: int, text: str, wrap: int = 0, color = -1, italic: bool = False, bold: bool = False):
         """
@@ -193,5 +210,26 @@ class Renderer:
 
         self.clear_choices()
         self.stdscr.clear()
+
+        return out
+
+    def start_battle(self, battle: Battle):
+        """
+        Set the game's active 'battle', then wait for the battle to conclude.
+
+        Args:
+        battle (Battle): The battle instance.
+        """
+        self.__battle = battle
+        self.__battle_result = -1
+
+        while self.__battle_result == -1:
+            time.sleep(0.1)
+
+        log.debug("JKHJKFHSJHF")
+
+        out = self.__battle_result
+        self.__battle = None
+        self.__battle_result = -1
 
         return out

@@ -160,6 +160,16 @@ class BattleCharacter(Character):
         """
         return self.__hitpoints
 
+    @property
+    def alive(self):
+        """
+        Whether the character is considered 'alive'.
+
+        Returns:
+        bool: Character has greater than 0 hitpoints.
+        """
+        return True if self.hitpoints > 0 else False
+
     @hitpoints.setter
     def hitpoints(self, to: int):
         try:
@@ -261,7 +271,7 @@ class Battle:
 
         if decrement and self.__display["length"] > 0:
             self.__display["length"] = self.__display["length"] - decrement
-        else:
+        elif self.__display["length"] < 0:
             self.set_display("", 0)
 
         return (self.__display["text"], self.__display["length"])
