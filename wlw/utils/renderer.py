@@ -22,16 +22,18 @@ class Renderer:
         curses.start_color()
         curses.use_default_colors()
         curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
-        curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_WHITE)
-        curses.init_pair(5, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
+        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
+        curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_BLACK)
+        curses.init_pair(5, curses.COLOR_YELLOW, curses.COLOR_WHITE)
+        curses.init_pair(6, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
 
         self.color_red_black = curses.color_pair(1)
-        self.color_black_white = curses.color_pair(2)
-        self.color_white_black = curses.color_pair(3)
-        self.color_yellow_white = curses.color_pair(4)
-        self.color_black_magenta = curses.color_pair(5)
+        self.color_green_black = curses.color_pair(2)
+        self.color_black_white = curses.color_pair(3)
+        self.color_white_black = curses.color_pair(4)
+        self.color_yellow_white = curses.color_pair(5)
+        self.color_black_magenta = curses.color_pair(6)
         
         self.__choices = []
         self.__choices_response = -1
