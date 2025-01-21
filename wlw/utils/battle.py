@@ -215,6 +215,7 @@ class Battle:
             if not isinstance(foe, BattleCharacter):
                 raise TypeError(f"Foe '{foe}' is not a BattleCharacter object!")
 
+        self.__display = {"text": "", "length": 0}
         self.__allies = allies
         self.__foes = foes
         self.__turn = 0
@@ -230,6 +231,40 @@ class Battle:
     @property
     def turn(self):
         return self.__turn
+
+    def set_display(self, text: str, length: int) -> None:
+        """
+        Set the current "display" message.
+        
+        Args:
+        text (str): The display message.
+        length (int): How long the message should be up for.
+        """
+        self.__display["text"] = text
+        self.__display["length"] = length
+
+
+    def get_display(self, decrement: float = 0.0) -> tuple[str, int]:
+        """
+        Get the current set "display" message for the battle.
+
+        If `decrement` is set, will automatically decrement the timer.
+
+        Automatically clears any expired messages.
+
+        Args:
+        decrement (float): Decrement internal timer.
+
+        Returns:
+        tuple[str, int]: The current display message.
+        """
+
+        if decrement and self.__display["length"] > 0:
+            self.__display["length"] = self.__display["length"] - decrement
+        else:
+            self.set_display("", 0)
+
+        return (self.__display["text"], self.__display["length"])
 
     def find_foe(self, foe_name: str):
         """
