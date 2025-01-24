@@ -147,7 +147,6 @@ class Manager:
         with open(self.save_path, "rb") as f:
             try:
                 data = pickle.loads(self._xor_obfuscate(pickle.load(f)["!!WLW-SAVE-FILE_DO-NOT-EDIT!!"]))
-                log.debug(data)
             except pickle.UnpicklingError as e:
                 raise BadSaveError("Save file is invalid or corrupt!") from e
             self.__characters = data["characters"]
