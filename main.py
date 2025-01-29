@@ -14,6 +14,7 @@ from wlw.utils.manager import Manager
 from wlw.utils.errors import *
 from wlw.utils.chapter import ChapterThread
 from wlw.utils.battle import Battle, BattleCharacter
+from wlw.utils.discord import RichPresence
 from wlw.game import chapter_modules
 
 class WhatLurksWithin:
@@ -24,9 +25,13 @@ class WhatLurksWithin:
         curses.noecho()
 
         self.VERSION = "0.0.0"
+        self.RPC_ID = "1333980355010629765"
+        self.RPC_PING_INTERVAL = 15
+        self.RPC_LAST_PING = 0
 
         self.renderer = Renderer(self.stdscr)
         self.manager = Manager("save.dat")
+        self.rpc = RichPresence(self.RPC_ID)
         self.chapter_thread = None
         self.h, self.w = stdscr.getmaxyx()
 
@@ -278,12 +283,24 @@ class WhatLurksWithin:
         user_read = False
         waiting_on_user = False
 
+        self.RPC_LAST_PING = time.time()
+
         while self.chapter_thread.is_alive():
             k = self.stdscr.getch()
             newh, neww = stdscr.getmaxyx()
             if newh != self.h or neww != self.w:
                 self.stdscr.clear()
             self.h, self.w = newh, neww
+
+            # rpc health check, we should try and re-establish the connection if it dies
+            if time.time() - self.RPC_LAST_PING > self.RPC_PING_INTERVAL:
+                self.RPC_LAST_PING = time.time()
+                if not self.rpc.is_ready: # connection was broken
+                    log.debug("RPC connection was lost! Attempting to re-establish...")
+                    self.rpc._disconnect() # cleanup
+                    self.rpc._connect() # try to reconnect
+                    self.rpc._authenticate()
+                    self.rpc.reload_state()
 
 
             # user input
@@ -381,6 +398,8 @@ class WhatLurksWithin:
                 section_name = self.manager.section["section"]
 
                 if hasattr(chapter_instance, section_name):
+                    # set the state while we still have access to these
+                    self.rpc.set_state(self.rpc.ActivityType.PLAYING, f"{chap.CHAPTER_NUMBER}:{chap.CHAPTER_TITLE}", "Continuing their story...", int(time.time()), "nihira_goober_1", "wlwlwlw")
                     self.play_chapter(getattr(chapter_instance, section_name))
                     loading = False
                     continue
@@ -391,6 +410,7 @@ class WhatLurksWithin:
 
             # print(f"Starting chapter: {chap.CHAPTER_TITLE} ({chap.CHAPTER_NUMBER})")
             chapter_instance = chap.Main(self.manager, self.renderer)
+            self.rpc.set_state(self.rpc.ActivityType.PLAYING, f"{chap.CHAPTER_NUMBER}:{chap.CHAPTER_TITLE}", "Writing their story...", int(time.time()), "nihira_goober_1", "wlwlwlw")
             self.play_chapter(chapter_instance.start)
 
 
@@ -398,6 +418,8 @@ class WhatLurksWithin:
     def main_menu(self):
         title = "WHAT LURKS WITHIN"
         
+        self.rpc.set_state(self.rpc.ActivityType.PLAYING, "~~~", "Main Menu", int(time.time()), "nihira_goober_1", "what did you expect here? lol")
+
         self.renderer.set_choices([{"title": "Start New Game", "id": "start"},
                         {"title": "Load Game", "id": "load"},
                         {"title": "Quit", "id": "quit"}])
@@ -456,7 +478,12 @@ if __name__ == "__main__":
     log.info(f"WHAT LURKS WITHIN v{game.VERSION}")
     log.log_blank()
 
+
     try:
+        # spin up Rich Presence
+        game.rpc._connect()
+        game.rpc._authenticate()
+
         log.debug("Entering main menu.")
         user_choice = game.main_menu()
 
@@ -478,10 +505,12 @@ if __name__ == "__main__":
         pass
     except Exception as e:
         curses.endwin()
+        game.rpc._disconnect()
         log.critical("WLW encountered an unrecoverable error!")
         log.error(e, exc_info=True)
         sys.exit(1)
         # raise e
 
     curses.endwin()
+    game.rpc._disconnect()
     log.info("WLW exiting gracefully.")
