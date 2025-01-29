@@ -146,11 +146,18 @@ class Manager:
 
         with open(self.save_path, "rb") as f:
             try:
-                data = pickle.loads(self._xor_obfuscate(pickle.load(f)["!!WLW-SAVE-FILE_DO-NOT-EDIT!!"]))
+                raw = pickle.load(f) # load the save file container and depickle it
+                data = pickle.loads(self._xor_obfuscate(raw["!!WLW-SAVE-FILE_DO-NOT-EDIT!!"])) # deobfuscate, then reconstruct the save
             except pickle.UnpicklingError as e:
                 raise BadSaveError("Save file is invalid or corrupt!") from e
-            self.__characters = data["characters"]
-            self.__persistent = data["persistent"]
-            self.__current_section = data["current_section"]
+            except UnicodeDecodeError as e: # deobfuscation errors, should hide as much context as possible
+                raise BadSaveError(f"Save file is malformed! ({e})") from None
+            
+            try:
+                self.__characters = data["characters"]
+                self.__persistent = data["persistent"]
+                self.__current_section = data["current_section"]
+            except KeyError as e: # bad keys, user likely changed something or the file is outdated.
+                raise BadSaveError(f"Save data is malformed! ({e})") from None
 
         log.info(f"Successfully read game data from '{self.save_path}'.")
