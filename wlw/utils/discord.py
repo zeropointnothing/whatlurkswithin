@@ -43,8 +43,33 @@ class RichPresence:
         self.__client_id = client_id
         self.__authenticated = -1
         self.__socket = None
+        self.__last_payload = {}
 
         log.debug("Ready for RichPresence!")
+
+    # properties
+    @property
+    def is_ready(self) -> bool:
+        """
+        Whether the connection to the IPC socket is active and authenticated.
+
+        If the socket is available and supposedly authenticated, will attempt to reload the current activity.
+        
+        If any known errors occur, will assume the connection was broken.
+
+        Returns:
+        bool: Whether the connection is active and authenticated.
+        """
+
+        if self.__socket and self.__authenticated == 1:
+            try:
+                op, payload = self.reload_state()
+                return op == 1
+            except (socket.error, json.JSONDecodeError, struct.error, ConnectionError, AuthenticationError) as e:
+                raise e
+                return False
+        else:
+            return False
 
     # utility classes/functions
     class ActivityType(Enum):
@@ -99,6 +124,26 @@ class RichPresence:
 
         log.debug(f"Updating presence with payload: {payload}.")
         self.__send_packet(1, payload)
+        self.__last_payload = payload
+
+        op, payload = self.__read_packet()
+        log.debug(f"Discord responded with OpCode '{op}'.")
+
+
+        return op, payload
+
+    def reload_state(self):
+        """
+        Reload the state using the last saved payload set by `set_state`.
+
+        Useful for reconnecting to Discord's IPC.
+
+        Returns:
+        tuple[int, dict]: Discord's response, if any.
+        """
+
+        log.debug(f"Reloading last presence state: {self.__last_payload}")
+        self.__send_packet(1, self.__last_payload)
 
         op, payload = self.__read_packet()
         log.debug(f"Discord responded with OpCode '{op}'.")
@@ -128,6 +173,8 @@ class RichPresence:
         # we don't really need this, but the RPC server will error out if we close without reading
         op, payload = self.__read_packet()
         log.debug(f"Discord responded with '{op}'.")
+
+        self.__last_payload = {}
 
         return op, payload
 
