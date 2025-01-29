@@ -78,15 +78,9 @@ class RichPresence:
         """
         Whether or not RPC is enabled.
 
-        Disabled clients will disable all functions and avoid connection to the IPC socket.
+        To prevent errors, most functions will simply return if this is False.
         """
         return self.__can_rpc
-    @enabled.setter
-    def enabled(self, to: bool):
-        if not isinstance(to, bool):
-            raise TypeError(f"Expected value of type 'bool', not '{to.__class__.__name__}'.")
-
-        self.__can_rpc = to
 
     # utility classes/functions
     class ActivityType(Enum):
@@ -139,6 +133,7 @@ class RichPresence:
         }
 
         if not self.__can_rpc:
+            # we can't update, but we should still save the intended payload
             self.__last_payload = payload
             return None
 
@@ -230,7 +225,7 @@ class RichPresence:
             sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             sock.settimeout(5)
             sock.connect(self.__ipc_path)
-        except FileNotFoundError:
+        except FileNotFoundError: # we shouldn't raise an error here, since this is the best way to 'ping' the socket
             self.__can_rpc = False
             log.debug("Unable to locate IPC socket!")
             return None
