@@ -35,10 +35,11 @@ class RichPresence:
             raise NotImplementedError("Unable to determine a valid IPC socket path for this platform!")
 
         if not os.path.exists(self.__ipc_path):
-            raise FileNotFoundError("Failed to determine a valid IPC socket path!")
+            log.warning("Failed to determine a valid IPC socket path! RPC will be disabled!")
+            self.__can_rpc = False
         else:
+            self.__can_rpc = True
             log.debug(f"Using IPC socket path: '{self.__ipc_path}' to communicate with Discord.")
-
 
         self.__client_id = client_id
         self.__authenticated = -1
@@ -70,6 +71,21 @@ class RichPresence:
         else:
             return False
 
+    @property
+    def enabled(self):
+        """
+        Whether or not RPC is enabled.
+
+        Disabled clients will disable all functions and avoid connection to the IPC socket.
+        """
+        return self.__can_rpc
+    @enabled.setter
+    def enabled(self, to: bool):
+        if not isinstance(to, bool):
+            raise TypeError(f"Expected value of type 'bool', not '{to.__class__.__name__}'.")
+
+        self.__can_rpc = to
+
     # utility classes/functions
     class ActivityType(Enum):
         """
@@ -99,6 +115,9 @@ class RichPresence:
         Returns:
         tuple[int, dict] | None: Discord's response, if any.
         """
+        if not self.__can_rpc:
+            return None
+
         # assemble the payload
         payload = {
             "cmd": "SET_ACTIVITY",
@@ -140,6 +159,8 @@ class RichPresence:
         Returns:
         tuple[int, dict]: Discord's response, if any.
         """
+        if not self.__can_rpc:
+            return None
 
         log.debug(f"Reloading last presence state: {self.__last_payload}")
         self.__send_packet(1, self.__last_payload)
@@ -158,6 +179,9 @@ class RichPresence:
         Returns:
         tuple[int, dict] | None: Discord's response, if any.
         """
+        if not self.__can_rpc:
+            return None
+
         payload = {
             "cmd": "SET_ACTIVITY",
             "args": {
@@ -190,6 +214,8 @@ class RichPresence:
         """
         if self.__socket:
             raise ConnectionError("IPC socket is already connected!")
+        elif not self.__can_rpc:
+            return None
 
         log.debug("Attempting to open a connection to the IPC socket...")
 
@@ -211,7 +237,10 @@ class RichPresence:
         If authenticated, will attempt to clear any ongoing presence.
         """
         if not self.__socket:
-            raise ConnectionError("IPC socket is not connected!")
+            self.__authenticated = -1
+            return # socket was already closed, we don't need to (cant) do anything
+        elif not self.__can_rpc:
+            return None
 
         log.debug("Attempting to cleanup and close the IPC socket...")
 
@@ -231,6 +260,9 @@ class RichPresence:
         
         Required before any other RPC calls.
         """
+        if not self.__can_rpc:
+            return None
+
         payload = {
             "v": 1,
             "client_id": self.__client_id
