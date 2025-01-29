@@ -37,3 +37,9 @@ class InvalidTargetError(Exception):
     Target conflict.
     """
     pass
+
+class AuthenticationError(Exception):
+    """
+    Authentication error.
+    """
+    pass
