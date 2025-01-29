@@ -62,7 +62,9 @@ class RichPresence:
         bool: Whether the connection is active and authenticated.
         """
 
-        if self.__socket and self.__authenticated == 1:
+        if not self.__can_rpc:
+            return False
+        elif self.__socket and self.__authenticated == 1:
             try:
                 op, payload = self.reload_state()
                 return op == 1
@@ -115,9 +117,6 @@ class RichPresence:
         Returns:
         tuple[int, dict] | None: Discord's response, if any.
         """
-        if not self.__can_rpc:
-            return None
-
         # assemble the payload
         payload = {
             "cmd": "SET_ACTIVITY",
@@ -139,16 +138,24 @@ class RichPresence:
             "nonce": str(time.time())
         }
 
+        if not self.__can_rpc:
+            self.__last_payload = payload
+            return None
 
-        log.debug(f"Updating presence with payload: {payload}.")
-        self.__send_packet(1, payload)
-        self.__last_payload = payload
+        try:
+            log.debug(f"Updating presence with payload: {payload}.")
+            self.__send_packet(1, payload)
+            self.__last_payload = payload
 
-        op, payload = self.__read_packet()
-        log.debug(f"Discord responded with OpCode '{op}'.")
+            op, payload = self.__read_packet()
+            log.debug(f"Discord responded with OpCode '{op}'.")
+            return op, payload
+        except (ConnectionError, BrokenPipeError) as e:
+            log.warning(f"RPC failed to update with error: {e}. Disabling until further notice.")
+            self.__authenticated = -1
+            self.__socket = None
+            self.__can_rpc = False
 
-
-        return op, payload
 
     def reload_state(self):
         """
@@ -161,6 +168,8 @@ class RichPresence:
         """
         if not self.__can_rpc:
             return None
+        elif not self.__last_payload:
+            raise ValueError("No last payload!")
 
         log.debug(f"Reloading last presence state: {self.__last_payload}")
         self.__send_packet(1, self.__last_payload)
@@ -214,17 +223,21 @@ class RichPresence:
         """
         if self.__socket:
             raise ConnectionError("IPC socket is already connected!")
-        elif not self.__can_rpc:
-            return None
 
         log.debug("Attempting to open a connection to the IPC socket...")
 
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        sock.settimeout(5)
-        sock.connect(self.__ipc_path)
+        try:
+            sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            sock.settimeout(5)
+            sock.connect(self.__ipc_path)
+        except FileNotFoundError:
+            self.__can_rpc = False
+            log.debug("Unable to locate IPC socket!")
+            return None
 
         if sock.fileno() != -1:
             self.__socket = sock
+            self.__can_rpc = True
             log.debug("Connection to IPC socket established!")
             return self.__socket
         else:
@@ -248,7 +261,7 @@ class RichPresence:
             try:
                 self.clear_state()
             except BrokenPipeError: # connection was closed already, we can't do anything more
-                self.__last_payload = {}
+                pass
             self.__authenticated = -1
         self.__socket.close()
         self.__socket = None
