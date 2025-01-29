@@ -152,7 +152,7 @@ class Manager:
                 raise BadSaveError("Save file is invalid or corrupt!") from e
             except UnicodeDecodeError as e: # deobfuscation errors, should hide as much context as possible
                 raise BadSaveError(f"Save file is malformed! ({e})") from None
-            
+
             try:
                 self.__characters = data["characters"]
                 self.__persistent = data["persistent"]
