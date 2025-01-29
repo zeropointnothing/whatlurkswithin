@@ -65,8 +65,7 @@ class RichPresence:
             try:
                 op, payload = self.reload_state()
                 return op == 1
-            except (socket.error, json.JSONDecodeError, struct.error, ConnectionError, AuthenticationError) as e:
-                raise e
+            except (socket.error, json.JSONDecodeError, struct.error, ConnectionError, BrokenPipeError, AuthenticationError) as e:
                 return False
         else:
             return False
@@ -217,7 +216,10 @@ class RichPresence:
         log.debug("Attempting to cleanup and close the IPC socket...")
 
         if self.__authenticated == 1:
-            self.clear_state()
+            try:
+                self.clear_state()
+            except BrokenPipeError: # connection was closed already, we can't do anything more
+                self.__last_payload = {}
             self.__authenticated = -1
         self.__socket.close()
         self.__socket = None
