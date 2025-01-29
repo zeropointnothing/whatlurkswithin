@@ -16,11 +16,18 @@ log: WLWLogger
 class RichPresence:
     """
     Simple wrapper for Discord Rich Presence.
+
+    Supplies various functions to interact ONLY with the Rich Presence API.
+
+    Most functions will raise errors upon unexpected results, so ensure proper error handling is done when using this.
     """
     __socket: socket.socket
     def __init__(self, client_id: str):
         """
         Automatically locates the Discord IPC socket and preps the client for RPC.
+
+        Args:
+        client_id (str): The client ID to use when communicating with Discord.
         """
         if sys.platform == "linux":
             self.__ipc_path = os.path.join(os.getenv("XDG_RUNTIME_DIR", "/tmp"),  "discord-ipc-0")
