@@ -399,7 +399,7 @@ class WhatLurksWithin:
 
                 if hasattr(chapter_instance, section_name):
                     # set the state while we still have access to these
-                    self.rpc.set_state(self.rpc.ActivityType.PLAYING, f"{chap.CHAPTER_NUMBER}:{chap.CHAPTER_TITLE}", "Continuing their story...", int(time.time()), "nihira_goober_1", "wlwlwlw")
+                    self.rpc.set_state(self.rpc.ActivityType.PLAYING, f"Chapter {chap.CHAPTER_NUMBER}: {chap.CHAPTER_TITLE}", "Continuing their story...", int(time.time()), "nihira_goober_1", "wlwlwlw")
                     self.play_chapter(getattr(chapter_instance, section_name))
                     loading = False
                     continue
@@ -410,7 +410,7 @@ class WhatLurksWithin:
 
             # print(f"Starting chapter: {chap.CHAPTER_TITLE} ({chap.CHAPTER_NUMBER})")
             chapter_instance = chap.Main(self.manager, self.renderer)
-            self.rpc.set_state(self.rpc.ActivityType.PLAYING, f"{chap.CHAPTER_NUMBER}:{chap.CHAPTER_TITLE}", "Writing their story...", int(time.time()), "nihira_goober_1", "wlwlwlw")
+            self.rpc.set_state(self.rpc.ActivityType.PLAYING, f"Chapter {chap.CHAPTER_NUMBER}:{chap.CHAPTER_TITLE}", "Writing their story...", int(time.time()), "nihira_goober_1", "wlwlwlw")
             self.play_chapter(chapter_instance.start)
 
 
