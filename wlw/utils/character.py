@@ -3,6 +3,7 @@ Character class for WLW.
 """
 import time
 from wlw.utils.errors import *
+from wlw.utils.formatting import format_line, get_format_max_length, FormatType
 
 class Character:
     """
@@ -38,7 +39,7 @@ class Character:
             raise TypeError(f"Starting affinity must be an 'int', not '{affinity.__class__.__name__}'.") from e
 
         self._name = name
-        self.__current_text = ""
+        self.__current_text = []
         self.__current_text_index = 0
         self.__current_text_thought = False
         self.__current_text_lock = False
@@ -148,7 +149,7 @@ class Character:
         return self.__special
 
     @property
-    def saying(self) -> tuple[str, int, bool]:
+    def saying(self) -> tuple[list[tuple[FormatType, str|float]], int, bool]:
         """
         What the character is saying, how far they are in saying it, and whether it's a thought.
         
@@ -157,7 +158,7 @@ class Character:
         Returns:
         tuple: Current text, current text index, is_thought.
         """
-        if self.__current_text_index > len(self.__current_text):
+        if self.__current_text_index > get_format_max_length(self.__current_text):
             return (self.__current_text, -1, self.__current_text_thought)
 
         return (self.__current_text, self.__current_text_index, self.__current_text_thought)
@@ -210,16 +211,24 @@ class Character:
         """
 
         if max:
-            self.__current_text_index = len(self.__current_text)+1
+            self.__current_text_index = get_format_max_length(self.__current_text)+1
         else:
             self.__current_text_index += 1
+    def _decrement_speak_index(self):
+        """
+        Decrement the text index of the character's speech.
+
+        Should only called by the main thread.
+        """
+
+        self.__current_text_index -= 1
 
     def _mark_read_text(self):
         """
         Clear the internal text variable, releasing any threads
         waiting for the user to read the text.
         """
-        self.__current_text = ""
+        self.__current_text = []
 
     def speak(self, text: str, thought: bool = False, lock: bool = False) -> None:
         """
@@ -242,7 +251,9 @@ class Character:
         if not isinstance(text, str):
             raise TypeError(f"Invalid type '{text.__class__.__name__}'. Expected 'str'")
 
-        self.__current_text = text
+        fmt = format_line(text) # we need to format here since it's computationally expensive to run RegEx.
+
+        self.__current_text = fmt
         self.__current_text_thought = thought
         self.__current_text_index = 0
 

@@ -2,6 +2,7 @@ import curses
 import time
 import logging, sys, platform
 import random
+import re
 
 # the logger needs to be initialized before we load any other modules that require it
 from wlw.utils.logger import WLWLogger
@@ -15,6 +16,7 @@ from wlw.utils.errors import *
 from wlw.utils.chapter import ChapterThread
 from wlw.utils.battle import Battle, BattleCharacter
 from wlw.utils.discord import RichPresence
+from wlw.utils.formatting import format_line, get_format_max_length, get_format_up_to, FormatType
 from wlw.game import chapter_modules
 
 class WhatLurksWithin:
@@ -275,11 +277,16 @@ class WhatLurksWithin:
         features in the engine.
         """
 
+        ###
+        ## Quite an ugly function, with MANY loops due to the complexities with formatting. Pay attention to comments!
+        ###
+
         # chapters rely on blocking functions, so it needs to run in the background
         log.info(f"Launching chapter {start.__module__} ({start.__name__})")
         self.chapter_thread = ChapterThread(target=start, daemon=True, name=f"chapter-thread_{start.__module__.replace('.', '_')}")
         self.chapter_thread.start()
         last_char = time.time()
+        temp_wait = 0
         user_read = False
         waiting_on_user = False
 
@@ -326,35 +333,100 @@ class WhatLurksWithin:
                 self.renderer.battle_result = out
                 self.stdscr.clear()
 
-            for char in self.manager.characters:
+            for char in self.manager.characters: # render character speech. the mess begins...
                 saying = char.saying
 
                 if saying[0]:
-                    if time.time() - last_char > self.TEXT_SPEED and not user_read: # normal increment
+                    if temp_wait and time.time() - last_char > temp_wait: # temp wait can adjust how long we wait
+                        char._increment_speak_index()
+                        last_char = time.time()
+                        temp_wait = 0
+                    elif not temp_wait and (time.time() - last_char > self.TEXT_SPEED and not user_read): # normal increment
                         char._increment_speak_index()
                         last_char = time.time()
                     elif user_read and not waiting_on_user: # manual skip
                         char._increment_speak_index(True)
                         user_read = False
+                        temp_wait = 0
                     elif user_read and waiting_on_user and not char._is_locked: # user read text
                         char._mark_read_text()
                         waiting_on_user = False
                         user_read = False
                         # self.renderer.clear_lines(1, self.h) # text wrapping might have left some stuff behind
                         self.stdscr.move(2, 2)
+                        temp_wait = 0
                         break
 
+                    # pretty box around the text/title
                     self.renderer.draw_box(0, 0, self.w-2, self.h-1)
                     self.renderer.place_line(1, 0, f" {char.name} ({user_read}, {waiting_on_user}, {char._is_locked}) ")
 
                     prefix = "\"" if not saying[2] else ""
-                    italic = True if saying[2] else False
+                    italic = True if saying[2] else False # thoughts should be italic regardless of formatting
 
                     if saying[1] != -1:
-                        self.renderer.place_line(2, 2, f"{prefix}{saying[0][:saying[1]]}{prefix}", self.w-4, italic=italic)
-                    elif saying[1] == -1:
-                        self.renderer.place_line(2, 2, f"{prefix}{saying[0]}{prefix}", self.w-4, italic=italic)
+                        # pre render maths
+                        splfmt = get_format_up_to(saying[0], saying[1]) # split the format list by our current text index to preserve scrolling text
+                        x_offset = 2 if not prefix else 3
+                        y_offset = 2
+                        self.renderer.place_line(x_offset-1, y_offset, prefix)
+
+                        for chunk in splfmt: # in order to render with different styles, we need to do it chunk by chunk                            
+                            if chunk[0] == FormatType.SKIP: # forcefully skip the character by faking user interaction
+                                user_read = True
+                                waiting_on_user = False
+                                char._mark_read_text()
+                                break
+                            elif chunk[0] == FormatType.WAIT:
+                                # time.sleep(float(chunk[1]))
+                                char._decrement_speak_index() # since this WAIT will be removed, we need to backtrack by one
+                                temp_wait = float(chunk[1])
+                                saying[0].remove(chunk)
+                                break # break out of the loop to prevent jittery cursor
+                            else:
+                                words = re.split(r"(\s+)", chunk[1])
+                                for word in words:
+                                    if x_offset + len(word) >= self.w - 4: # text wrapping
+                                        x_offset = 2
+                                        y_offset += 1
+                                    if chunk[0] == FormatType.ITALIC:
+                                        self.renderer.place_line(x_offset, y_offset, word, italic=True)
+                                    elif chunk[0] == FormatType.BOLD:
+                                        self.renderer.place_line(x_offset, y_offset, word, bold=True)
+                                    else:
+                                        self.renderer.place_line(x_offset, y_offset, word, italic=italic)
+                                    x_offset += len(word)
+
+                        # self.renderer.place_line(2, 2, f"{prefix}{saying[0][:saying[1]]}", self.w-4, italic=italic)
+                    elif saying[1] == -1: # text wrapping
+                        x_offset = 2 if not prefix else 3
+                        y_offset = 2
+                        self.renderer.place_line(x_offset-1, y_offset, prefix)
+
+                        for chunk in saying[0]: # still render chunk by chunk, but render the entire line instead
+                            if chunk[0] == FormatType.WAIT: # special value, we should skip them
+                                continue
+                            elif chunk[0] == FormatType.SKIP: # forcefully skip the character by faking user interaction
+                                user_read = True
+                                waiting_on_user = False
+                                char._mark_read_text()
+                                break
+                            else:
+                                words = re.split(r"(\s+)", chunk[1])
+                                for word in words:
+                                    if x_offset + len(word) >= self.w - 4:
+                                        x_offset = 2
+                                        y_offset += 1
+                                    if chunk[0] == FormatType.ITALIC:
+                                        self.renderer.place_line(x_offset, y_offset, word, italic=True)
+                                    elif chunk[0] == FormatType.BOLD:
+                                        self.renderer.place_line(x_offset, y_offset, word, bold=True)
+                                    else:
+                                        self.renderer.place_line(x_offset, y_offset, word, italic=italic)
+                                    x_offset += len(word)
                         waiting_on_user = True
+
+                        self.renderer.place_line(x_offset, y_offset, prefix)
                     # self.renderer.place_line(0, 0, f"{char.name}: {char.saying[0][:char.saying[1]]}")
 
             user_read = False

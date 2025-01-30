@@ -126,7 +126,7 @@ class Renderer:
                 self.stdscr.addstr(y+i, x, line)
 
             # self.stdscr.clrtoeol()
-            
+
     def draw_box(self, sx: int, sy: int, ex: int, ey:int):
         """
         Draw a box from (`sx`, `sy`) to (`ex`, `ey`).
