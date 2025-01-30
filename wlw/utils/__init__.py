@@ -9,4 +9,6 @@ from .chapter import Chapter
 from .renderer import Renderer
 from .errors import *
 
+VERSION = "0.0.0"
+
 __all__ = ["Character", "Player", "Manager", "Chapter", "Renderer"]
