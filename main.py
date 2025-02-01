@@ -231,6 +231,8 @@ class WhatLurksWithin:
                     acted = True
                 except ValueError:
                     batt.set_display(f"No such attack '{command.split(" ")[1]}'!", 2)
+                except InvalidTargetError as e:
+                    batt.set_display(e, 3)
                 command = ""
             elif command == "skip":
                 acted = True
