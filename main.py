@@ -302,7 +302,7 @@ class WhatLurksWithin:
             # rpc health check, we should try and re-establish the connection if it dies
             if time.time() - self.RPC_LAST_PING > self.RPC_PING_INTERVAL:
                 self.RPC_LAST_PING = time.time()
-                if not self.rpc.is_ready: # connection was broken
+                if not self.rpc.is_ready and self.rpc.rpc_supported: # connection was broken
                     log.debug("RPC connection was lost! Attempting to re-establish...")
                     self.rpc._disconnect() # cleanup
                     self.rpc._connect() # try to reconnect

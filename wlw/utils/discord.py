@@ -31,8 +31,11 @@ class RichPresence:
         """
         if sys.platform == "linux":
             self.__ipc_path = os.path.join(os.getenv("XDG_RUNTIME_DIR", "/tmp"),  "discord-ipc-0")
+            self.__rpc_supported = True
         else:
-            raise NotImplementedError("Unable to determine a valid IPC socket path for this platform!")
+            log.warning("Unable to determine a valid IPC socket path for this platform! RPC should be completely disabled!")
+            self.__ipc_path = ""
+            self.__rpc_supported = False
 
         if not os.path.exists(self.__ipc_path):
             log.warning("Failed to determine a valid IPC socket path! RPC will be disabled!")
@@ -72,6 +75,13 @@ class RichPresence:
                 return False
         else:
             return False
+
+    @property
+    def rpc_supported(self) -> bool:
+        """
+        Whether the current platform supports Rich Presence.
+        """
+        return self.__rpc_supported
 
     @property
     def enabled(self):
@@ -218,6 +228,8 @@ class RichPresence:
         """
         if self.__socket:
             raise ConnectionError("IPC socket is already connected!")
+        elif not self.__rpc_supported:
+            return
 
         log.debug("Attempting to open a connection to the IPC socket...")
 
