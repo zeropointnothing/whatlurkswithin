@@ -96,8 +96,8 @@ class Attack:
         Basic attack class.
         """
 
-        if target.lower() not in ["ally", "foe", "a_ally", "a_foe", "all"]:
-            raise ValueError(f"Target {target} is not valid. Expected 'ally/a_ally', 'foe/a_foe', or 'all'.")
+        if target.lower() not in ["ally", "foe", "a_ally", "a_foe", "all", "self", "other"]:
+            raise ValueError(f"Target {target} is not valid. Expected 'ally/a_ally', 'foe/a_foe', or 'all'/'self'/'other'.")
 
         self.__name = name
         self.__description = description
@@ -336,6 +336,8 @@ class Battle:
             raise ValueError(f"Attack '{using.name}' does not belong to character '{by.name}'!")
         elif (using.target in ["a_foe", "foe"] and self._on_same_team(whom, by)) or (using.target in ["a_ally", "ally"] and not self._on_same_team(whom, by)):
             raise InvalidTargetError(f"Attack '{using.name}' ('{by.name}') cannot target '{whom.name}', only characters of type '{using.target}'")
+        elif (using.target == "self" and whom != by) or (using.target == "other" and whom == by):
+            raise InvalidTargetError(f"Attack '{using.name}' ('{by.name}') cannot target '{whom.name}', only characters of type '{using.target}'")
 
         # targets all allies
         if using.target == "a_ally":
@@ -350,7 +352,7 @@ class Battle:
 
                 if using.buff:
                     foe.add_buff(using.buff)
-        elif using.target in ["ally", "foe"]:
+        elif using.target in ["ally", "foe", "self", "other"]:
             whom.damage(using.damage)
 
             if using.buff:
