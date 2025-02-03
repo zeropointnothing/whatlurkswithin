@@ -1,6 +1,6 @@
 import curses
 import time
-import logging, sys, platform
+import logging, sys, os, platform
 import random
 import re
 
@@ -32,7 +32,7 @@ class WhatLurksWithin:
         self.RPC_LAST_PING = 0
 
         self.renderer = Renderer(self.stdscr)
-        self.manager = Manager("save.dat")
+        self.manager = Manager(os.path.join(self.save_location, "save.dat"))
         self.rpc = RichPresence(self.RPC_ID)
         self.chapter_thread = None
         self.h, self.w = stdscr.getmaxyx()
@@ -44,6 +44,42 @@ class WhatLurksWithin:
         log.debug(f"Terminal H/W: {(self.h, self.w)}")
         log.debug(f"Text speed: {self.TEXT_SPEED}")
         log.debug("Game initialized!")
+    
+    @property
+    def save_location(self):
+        """
+        Determine the path to the save file depending on the detected system.
+
+        Returns:
+        str: The save file path.
+
+        Raises:
+        PlatformError: The platform is either unknown or unsupported.
+        """
+        if platform.system() == "Linux":
+            return os.path.join(os.getenv("XDG_DATA_HOME", os.path.expanduser("~/.local/share")), "whatlurkswithin")
+        elif platform.system() == "Windows":
+            return os.path.join(os.getenv('LOCALAPPDATA'), "whatlurkswithin")
+        else:
+            raise PlatformError(f"Platform '{platform.system()}' is unsupported! Unable to determine file paths!")
+
+    @property
+    def config_location(self):
+        """
+        Determine the path to the config file depending on the system.
+
+        Returns:
+        str: The config file path.
+
+        Raises:
+        PlatformError: The platform is either unknown or unsupported.
+        """
+        if platform.system() == "Linux":
+            return os.path.join(os.getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config')), "whatlurkswithin")
+        elif platform.system() == 'Windows':
+            return os.path.join(os.getenv('APPDATA'), "whatlurkswithin")
+        else:
+            raise PlatformError(f"Platform '{platform.system()}' is unsupported! Unable to determine file paths!")
 
     def history(self):
         """
@@ -626,14 +662,17 @@ if __name__ == "__main__":
     log.info(f"Using Python version: {platform.python_version()}")
     log.info(f"At: {time.asctime()}")
     # log.info(sys.)
-    stdscr = curses.initscr()
-    game = WhatLurksWithin(stdscr)
-
-    log.info(f"WHAT LURKS WITHIN v{game.VERSION}")
-    log.log_blank()
 
 
     try:
+        stdscr = curses.initscr()
+        game = WhatLurksWithin(stdscr)
+
+        log.info(f"WHAT LURKS WITHIN v{game.VERSION}")
+        log.debug(f"Saving app data to: {game.save_location}.")
+        log.debug(f"Saving config data to: {game.config_location}.")
+        log.log_blank()
+
         # spin up Rich Presence
         game.rpc._connect()
         game.rpc._authenticate()

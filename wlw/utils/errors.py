@@ -43,3 +43,9 @@ class AuthenticationError(Exception):
     Authentication error.
     """
     pass
+
+class PlatformError(Exception):
+    """
+    Platform not supported.
+    """
+    pass
