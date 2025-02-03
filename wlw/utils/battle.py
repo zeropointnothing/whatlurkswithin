@@ -1,3 +1,4 @@
+from enum import Enum, auto
 from wlw.utils.character import Character
 from wlw.utils.errors import InvalidTargetError
 import random
@@ -90,14 +91,26 @@ class Buff:
         else:
             self.__hot -= 1
 
+class Target(Enum):
+    """
+    Targets for attacks, buffs, or anything that needs one.
+    """
+    SELF = auto()
+    OTHER = auto()
+    ALLY = auto()
+    A_ALLY = auto()
+    FOE = auto()
+    A_FOE = auto()
+    ALL = auto()
+
 class Attack:
-    def __init__(self, name: str, description: str, damage: int = 0, target: str = "foe", buff: Buff = None):
+    def __init__(self, name: str, description: str, damage: int = 0, target: Target = Target.FOE, buff: Buff = None):
         """
         Basic attack class.
         """
 
-        if target.lower() not in ["ally", "foe", "a_ally", "a_foe", "all", "self", "other"]:
-            raise ValueError(f"Target {target} is not valid. Expected 'ally/a_ally', 'foe/a_foe', or 'all'/'self'/'other'.")
+        if target not in Target:
+            raise ValueError(f"Target '{target}' is not valid. Expected {[_.name for _ in Target]}.")
 
         self.__name = name
         self.__description = description
@@ -334,25 +347,25 @@ class Battle:
 
         if using not in by.attacks:
             raise ValueError(f"Attack '{using.name}' does not belong to character '{by.name}'!")
-        elif (using.target in ["a_foe", "foe"] and self._on_same_team(whom, by)) or (using.target in ["a_ally", "ally"] and not self._on_same_team(whom, by)):
-            raise InvalidTargetError(f"Attack '{using.name}' ('{by.name}') cannot target '{whom.name}', only characters of type '{using.target}'")
+        elif (using.target in [Target.A_FOE, Target.FOE] and self._on_same_team(whom, by)) or (using.target in [Target.A_ALLY, Target.ALLY] and not self._on_same_team(whom, by)):
+            raise InvalidTargetError(f"Attack '{using.name}' ('{by.name}') cannot target '{whom.name}', only characters of type '{using.target.name}'")
         elif (using.target == "self" and whom != by) or (using.target == "other" and whom == by):
-            raise InvalidTargetError(f"Attack '{using.name}' ('{by.name}') cannot target '{whom.name}', only characters of type '{using.target}'")
+            raise InvalidTargetError(f"Attack '{using.name}' ('{by.name}') cannot target '{whom.name}', only characters of type '{using.target.name}'")
 
         # targets all allies
-        if using.target == "a_ally":
+        if using.target == Target.A_ALLY:
             for ally in self.__allies:
                 ally.damage(using.damage)
                 
                 if using.buff:
                     ally.add_buff(using.buff)
-        elif using.target == "a_foe":
+        elif using.target == Target.A_FOE:
             for foe in self.__foes:
                 foe.damage(using.damage)
 
                 if using.buff:
                     foe.add_buff(using.buff)
-        elif using.target in ["ally", "foe", "self", "other"]:
+        elif using.target in [Target.ALLY, Target.FOE, Target.SELF, Target.OTHER]:
             whom.damage(using.damage)
 
             if using.buff:
