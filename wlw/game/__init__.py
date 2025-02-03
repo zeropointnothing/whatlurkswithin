@@ -6,8 +6,8 @@ Dynamically loads all chapter modules in the game package.
 All chapters should inherit from wlw.utils.chapter.Chapter, be named Main, and implement the start method.
 Additionally, they should define the constants CHAPTER_TITLE and CHAPTER_NUMBER.
 """
-import os
 import importlib
+import pkgutil
 import inspect
 import logging
 from wlw.utils.chapter import Chapter
@@ -18,10 +18,11 @@ log = logging.getLogger("WLWLogger")
 log: WLWLogger
 
 # Dynamically import all chapter modules
+# When built, requires the Nuitka --include-package='wlw.game' flag to be set so that pkgutil can find chapters.
 chapter_modules = []
-for filename in os.listdir(os.path.dirname(__file__)):
-    if filename.endswith(".py") and filename != "__init__.py":
-        module_name = f"wlw.game.{filename[:-3]}"
+for package in pkgutil.iter_modules([__path__][0]): # pkgutil will function when built with nuitka
+    if package.name != "__init__.py":
+        module_name = f"wlw.game.{package.name}"
         try:
             module = importlib.import_module(module_name)
             if hasattr(module, 'Main') and inspect.isclass(module.Main) and issubclass(module.Main, Chapter):
