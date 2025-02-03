@@ -168,7 +168,13 @@ class Manager:
 
         Special characters are excluded from the save file and are not persistent.
         """
+        save_dir = os.path.dirname(self.save_path)
         log.info("Saving game data...")
+        if not os.path.exists(save_dir):
+            log.debug("Save directory does not exist, creating...")
+            os.mkdir(save_dir)
+            log.debug(f"Created new save directory at: '{save_dir}'")
+
         with open(self.save_path, "wb") as f:
             save = pickle.dumps({
                 "current_section": self.__current_section,
