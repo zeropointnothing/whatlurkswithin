@@ -45,6 +45,72 @@ class WhatLurksWithin:
         log.debug(f"Text speed: {self.TEXT_SPEED}")
         log.debug("Game initialized!")
 
+    def history(self):
+        """
+        Render text history.
+
+        Provides a frontend for viewing `manager.history`.
+        """
+        TITLE = " < HISTORY > "
+        HELP = " <ESC>: Exit "
+        wrap_offset = 0 # first iteration needs this
+
+        while True:
+            # height stuff
+            k = self.renderer.stdscr.getch()
+            newh, neww = stdscr.getmaxyx()
+            if newh != self.h or neww != self.w:
+                self.renderer.stdscr.clear()
+            self.h, self.w = newh, neww
+            h_center = self.h//2
+            w_center = self.w//2
+
+            self.renderer.draw_box(0, 0, self.w-2, self.h-1)
+            self.renderer.place_line(w_center-(len(TITLE)//2), 0, TITLE) # draw the title
+
+
+            start_index = max(0, len(self.manager.history) - (self.h - 3 - wrap_offset)) # we need to shift up, not down
+            wrap_offset = 0 # since we're making a list, we need to shift further values down
+            for i, entry in enumerate(self.manager.history[start_index:]):
+                if 1+i+wrap_offset > self.h-3:
+                    continue
+                self.renderer.place_line(2, 1+i+wrap_offset, f"{entry["title"]}: ")
+
+                prefix = "\"" if entry["thought"] else ""
+                italic = True if entry["thought"] else False # thoughts should be italic regardless of formatting
+
+                x_offset = 4+len(entry["title"]) if not prefix else 4+len(entry["title"])
+                y_offset = 1+i+wrap_offset
+
+                for chunk in entry["text"]: # in order to render with different styles, we need to do it chunk by chunk
+                    if chunk[0] in [FormatType.SKIP, FormatType.WAIT]: # we don't need to render these
+                        continue
+                    words = re.split(r"(\s+)", chunk[1])
+                    for word in words:
+                        if x_offset + len(word) >= self.w - 4: # text wrapping
+                            x_offset = 4+len(entry["title"])
+                            y_offset += 1
+                            wrap_offset += 1
+                        if chunk[0] == FormatType.ITALIC:
+                            self.renderer.place_line(x_offset, y_offset, word, italic=True)
+                        elif chunk[0] == FormatType.BOLD:
+                            self.renderer.place_line(x_offset, y_offset, word, bold=True)
+                        else:
+                            self.renderer.place_line(x_offset, y_offset, word, italic=italic)
+                        x_offset += len(word)
+
+                # self.renderer.place_line(2, i+2, f"{entry["title"]}: {entry["text"]}")
+
+            self.renderer.place_line(self.w-len(HELP)-2, self.h-2, HELP)
+            self.renderer.stdscr.refresh()
+
+            # user input
+            if k == 27:
+                return
+
+            time.sleep(0.05)
+
+
     def battsys(self, batt: Battle):
         """
         BATTleSYStem.
@@ -275,6 +341,8 @@ class WhatLurksWithin:
         """
         Play a chapter.
 
+        Base Renderer.
+
         This is the heavy lifting function, as it handles the display of most
         features in the engine.
         """
@@ -326,6 +394,12 @@ class WhatLurksWithin:
             # normal input
             elif k in [curses.KEY_ENTER, 10]:
                 user_read = True
+            elif k != -1 and chr(k) in ["h", "H"]:
+                self.stdscr.clear()
+                log.debug("Opening History.")
+                self.history()
+                log.debug("Returning to main Renderer.")
+                self.stdscr.clear()
 
             if self.renderer.battle:
                 self.stdscr.clear()
@@ -339,6 +413,8 @@ class WhatLurksWithin:
                 saying = char.saying
 
                 if saying[0]:
+                    self.manager._add_history(saying[2], char.name, saying[0]) # attempt to add the current text to our history
+
                     if temp_wait and time.time() - last_char > temp_wait: # temp wait can adjust how long we wait
                         char._increment_speak_index()
                         last_char = time.time()
@@ -432,7 +508,7 @@ class WhatLurksWithin:
                     # self.renderer.place_line(0, 0, f"{char.name}: {char.saying[0][:char.saying[1]]}")
 
             # 'help' rendering
-            help_text = " <ENTER>: Continue "
+            help_text = " <ENTER>: Continue, h: History "
             self.renderer.place_line(self.w-len(help_text)-2, self.h-2, help_text)
 
             user_read = False

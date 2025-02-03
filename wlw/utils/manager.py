@@ -1,9 +1,12 @@
 import pickle
 import os
 import logging
+import hashlib
+import time
 from wlw.utils.character import Character
 from wlw.utils.errors import *
 from wlw.utils.logger import WLWLogger
+from wlw.utils.formatting import FormatType
 
 logging.setLoggerClass(WLWLogger)
 log = logging.getLogger("WLWLogger")
@@ -13,7 +16,7 @@ class Manager:
     """
     Manager class.
 
-    Manages import game data, such as characters and persistent data, allowing for
+    Manages import game data, such as characters, persistent data and history, allowing for
     save and load functionality.
     """
     def __init__(self, save_path: str):
@@ -21,9 +24,12 @@ class Manager:
 
         self.__obfuscation_key = save_path
 
+        self.HISTORY_MAX = 20 # how many history values we should keep track of
+
         self.__current_section = {"chapter": None, "section": None}
         self.__characters: list[Character] = [] # game characters
         self.__persistent: dict = {} # persistent data
+        self.__history: list[tuple[FormatType, str]] = [] # history of text
 
     @property
     def characters(self):
@@ -59,6 +65,10 @@ class Manager:
     @property
     def section(self):
         return self.__current_section
+
+    @property
+    def history(self):
+        return self.__history
 
     def set_section(self, chapter_title: str, section_name: str):
         """
@@ -116,6 +126,42 @@ class Manager:
         key = self.__obfuscation_key.encode()
         return bytes([b ^ key[i % len(key)] for i, b in enumerate(data)])
 
+    def _add_history(self, thought: bool, title: str, text: list[tuple[FormatType, str|float]]) -> str:
+        """
+        Add text to the history.
+
+        Automatically removes values that exceed the `HISTORY_MAX` attribute.
+
+        Will not add duplicates.
+
+        Args:
+        thought (bool): Whether the entry is a 'thought'.
+        title (str): The entry's title.
+        text (list[tuple[FormatType, str|float]]): The formatted text to add.
+
+        Returns:
+        str: A 'history id'.
+        """
+        hid = hashlib.sha256(f"{text}{id(text)}".encode()).hexdigest()
+        if not self._in_history(hid):
+            self.__history.append({"hid": hid, "thought": thought, "title": title, "text": text})
+            if len(self.__history) > self.HISTORY_MAX:
+                self.__history = self.history[len(self.__history)-self.HISTORY_MAX:]
+
+        return hid
+
+    def _in_history(self, hid: str) -> bool:
+        """
+        Check if an entry exists in the history based on its HID.
+
+        Args:
+        hid (str): The HistoryID to check for.
+
+        Returns:
+        bool: Whether it was found in the history.
+        """
+        return hid in [_["hid"] for _ in self.history]
+
     def save(self):
         """
         Save game data to the save file.
@@ -125,7 +171,8 @@ class Manager:
         log.info("Saving game data...")
         with open(self.save_path, "wb") as f:
             save = pickle.dumps({
-                "current_section": self.__current_section, 
+                "current_section": self.__current_section,
+                "history": self.__history,
                 "characters": [_ for _ in self.__characters if not _.special],
                 "persistent": self.__persistent})
             
@@ -154,6 +201,7 @@ class Manager:
                 raise BadSaveError(f"Save file is malformed! ({e})") from None
 
             try:
+                self.__history = data["history"]
                 self.__characters = data["characters"]
                 self.__persistent = data["persistent"]
                 self.__current_section = data["current_section"]
