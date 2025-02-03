@@ -431,6 +431,10 @@ class WhatLurksWithin:
                         self.renderer.place_line(x_offset, y_offset, prefix)
                     # self.renderer.place_line(0, 0, f"{char.name}: {char.saying[0][:char.saying[1]]}")
 
+            # 'help' rendering
+            help_text = " <ENTER>: Continue "
+            self.renderer.place_line(self.w-len(help_text)-2, self.h-2, help_text)
+
             user_read = False
 
             # 'choice' rendering
