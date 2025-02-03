@@ -176,7 +176,7 @@ class Main(Chapter):
         self.nih.speak("By now, with the ship's lights at full brightness, the halls are rather empty aside from us two. Most of the crew are likely at their stations.", True)
         self.nih.speak("The awkward silence that fills the halls drags on for only a moment before I ask:", True)
         self.nih.speak("How close are we? We've been moving at maximum speed for quite a while now.")
-        self.nih.speak("The question snaps Emil out of whatever robotic transe she was in and she swiftly responds:", True)
+        self.nih.speak("The question snaps Emil out of whatever robotic trance she was in and she swiftly responds:", True)
         self.emi.speak("Navigation reports we have traveled 93% of the current route. With our current heading, we should arrive by the end of the week.")
         self.nih.speak("If the battle is still going by then...", True)
         self.nih.speak("Understood. How's our Blink Drive doing?")
