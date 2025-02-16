@@ -145,7 +145,6 @@ class WhatLurksWithin:
                 # self.renderer.place_line(2, i+2, f"{entry["title"]}: {entry["text"]}")
 
             self.renderer.place_line(self.w-len(HELP)-2, self.h-2, HELP)
-            self.renderer.place_line(0, 0, f"{wrap_offset}")
             self.renderer.stdscr.refresh()
 
             # user input
