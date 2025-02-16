@@ -3,6 +3,7 @@ import time
 import logging, sys, os, platform
 import random
 import re
+import math
 
 # the logger needs to be initialized before we load any other modules that require it
 from wlw.utils.logger import WLWLogger
@@ -105,7 +106,13 @@ class WhatLurksWithin:
             self.renderer.place_line(w_center-(len(TITLE)//2), 0, TITLE) # draw the title
 
 
-            start_index = max(0, len(self.manager.history) - (self.h - 3 - wrap_offset)) # we need to shift up, not down
+            # calculate wrapping ahead of time, independant of the render
+            wrap_map = [(math.floor(
+                    (get_format_max_length(_["text"])+len(_["title"])+4)/(self.w-2)
+                    )) for _ in self.manager.history]
+            total_wrap = sum(wrap_map)
+
+            start_index = max(0, len(self.manager.history) - (self.h - 3 - total_wrap)) # we need to shift up, not down
             wrap_offset = 0 # since we're making a list, we need to shift further values down
             for i, entry in enumerate(self.manager.history[start_index:]):
                 if 1+i+wrap_offset > self.h-3:
@@ -115,7 +122,7 @@ class WhatLurksWithin:
                 prefix = "\"" if entry["thought"] else ""
                 italic = True if entry["thought"] else False # thoughts should be italic regardless of formatting
 
-                x_offset = 4+len(entry["title"]) if not prefix else 4+len(entry["title"])
+                x_offset = 4+len(entry["title"])
                 y_offset = 1+i+wrap_offset
 
                 for chunk in entry["text"]: # in order to render with different styles, we need to do it chunk by chunk
@@ -123,7 +130,7 @@ class WhatLurksWithin:
                         continue
                     words = re.split(r"(\s+)", chunk[1])
                     for word in words:
-                        if x_offset + len(word) >= self.w - 4: # text wrapping
+                        if x_offset + len(word) >= self.w - 2: # text wrapping
                             x_offset = 4+len(entry["title"])
                             y_offset += 1
                             wrap_offset += 1
@@ -138,6 +145,7 @@ class WhatLurksWithin:
                 # self.renderer.place_line(2, i+2, f"{entry["title"]}: {entry["text"]}")
 
             self.renderer.place_line(self.w-len(HELP)-2, self.h-2, HELP)
+            self.renderer.place_line(0, 0, f"{wrap_offset}")
             self.renderer.stdscr.refresh()
 
             # user input
