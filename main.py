@@ -52,10 +52,10 @@ class WhatLurksWithin:
         Determine the path to the save file depending on the detected system.
 
         Returns:
-        str: The save file path.
+            str: The save file path.
 
         Raises:
-        PlatformError: The platform is either unknown or unsupported.
+            PlatformError: The platform is either unknown or unsupported.
         """
         if platform.system() == "Linux":
             return os.path.join(os.getenv("XDG_DATA_HOME", os.path.expanduser("~/.local/share")), "whatlurkswithin")
@@ -70,10 +70,10 @@ class WhatLurksWithin:
         Determine the path to the config file depending on the system.
 
         Returns:
-        str: The config file path.
+            str: The config file path.
 
         Raises:
-        PlatformError: The platform is either unknown or unsupported.
+            PlatformError: The platform is either unknown or unsupported.
         """
         if platform.system() == "Linux":
             return os.path.join(os.getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config')), "whatlurkswithin")
@@ -163,10 +163,10 @@ class WhatLurksWithin:
         Automatically returns the result of the battle.
 
         Args:
-        batt (Battle): The battle to render.
+            batt (Battle): The battle to render.
 
         Returns:
-        int: The battle's result.
+            int: The battle's result.
         """
         battle_party = batt.allies+batt.foes
 
@@ -309,7 +309,7 @@ class WhatLurksWithin:
                 acted = True
 
             # skip dead allies
-            if (battle_party[batt.turn] in batt.allies and battle_party[batt.turn].hitpoints <= 0):
+            if battle_party[batt.turn] in batt.allies and battle_party[batt.turn].hitpoints <= 0:
                 acted = True
                 continue
 
@@ -579,7 +579,7 @@ class WhatLurksWithin:
         'loading' is `True`.
 
         Args:
-        loading (bool): Whether to load from save.
+            loading (bool): Whether to load from save.
 
         """
         chapter_modules.sort(key=lambda x: x.CHAPTER_NUMBER)

@@ -20,7 +20,7 @@ class Buff:
         How long the buff should last for.
         
         Returns:
-        int: The buff's remaining length (in turns)
+            int: The buff's remaining length (in turns)
         """
         return self.__buff_length
 
@@ -48,7 +48,7 @@ class Buff:
         The buff's name.
 
         Returns:
-        str: Buff name.
+            str: Buff name.
         """
         return self.__name
     
@@ -58,7 +58,7 @@ class Buff:
         The buff's description.
 
         Returns:
-        str: Buff description.
+            str: Buff description.
         """
         return self.__description
 
@@ -73,10 +73,10 @@ class Buff:
         Should be called each time a character with this buff is attacked.
 
         Args:
-        original_damage (int): The attack's original damage.
+            original_damage (int): The attack's original damage.
 
         Returns:
-        int: The new damage delt to the character.
+            int: The new damage delt to the character.
         """
         return original_damage * 1
 
@@ -84,7 +84,7 @@ class Buff:
         """
         Should be called each time a character uses a turn.
 
-        Idealy, also decrements the `__buff_length` count.
+        Ideally, also decrements the `__buff_length` count.
         """
         if self.__hot <= 0:
             self.__buff_length -= 1
@@ -141,7 +141,7 @@ class Attack:
 
 class BattleCharacter(Character):
     """
-    Special sub-class of Character which includes several battle-related functions and attributes.
+    Special subclass of Character which includes several battle-related functions and attributes.
     """
     def __init__(self, name, sex = "m", affinity = 0, hitpoints = 10, special = False, hidden = False):
         super().__init__(name, sex, affinity, special, hidden)
@@ -169,7 +169,7 @@ class BattleCharacter(Character):
         The amount of hitpoints, or 'health' of a character.
 
         Returns:
-        int: The character's remaining hitpoints.
+            int: The character's remaining hitpoints.
         """
         return self.__hitpoints
 
@@ -179,7 +179,7 @@ class BattleCharacter(Character):
         Whether the character is considered 'alive'.
 
         Returns:
-        bool: Character has greater than 0 hitpoints.
+            bool: Character has greater than 0 hitpoints.
         """
         return True if self.hitpoints > 0 else False
 
@@ -238,7 +238,7 @@ class Battle:
             if not isinstance(foe, BattleCharacter):
                 raise TypeError(f"Foe '{foe}' is not a BattleCharacter object!")
 
-        self.__display = {"text": "", "length": 0}
+        self.__display = {"text": "", "length": 0.0}
         self.__allies = allies
         self.__foes = foes
         self.__turn = 0
@@ -260,14 +260,14 @@ class Battle:
         Set the current "display" message.
         
         Args:
-        text (str): The display message.
-        length (int): How long the message should be up for.
+            text (str): The display message.
+            length (int): How long the message should be up for.
         """
         self.__display["text"] = text
         self.__display["length"] = length
 
 
-    def get_display(self, decrement: float = 0.0) -> tuple[str, int]:
+    def get_display(self, decrement: float = 0.0) -> tuple[str, float]:
         """
         Get the current set "display" message for the battle.
 
@@ -276,10 +276,10 @@ class Battle:
         Automatically clears any expired messages.
 
         Args:
-        decrement (float): Decrement internal timer.
+            decrement (float): Decrement internal timer.
 
         Returns:
-        tuple[str, int]: The current display message.
+            tuple[str, int]: The current display message.
         """
 
         if decrement and self.__display["length"] > 0:
@@ -287,14 +287,14 @@ class Battle:
         elif self.__display["length"] < 0:
             self.set_display("", 0)
 
-        return (self.__display["text"], self.__display["length"])
+        return self.__display["text"], self.__display["length"]
 
     def find_foe(self, foe_name: str):
         """
         Find the first foe with the name `foe_name`.
 
         Returns:
-        BattleCharacter: The foe, if found.
+            BattleCharacter: The foe, if found.
         """
         for foe in self.__foes:
             if foe_name == foe.name:
@@ -307,7 +307,7 @@ class Battle:
         Check if `a` is on the same team as `b`.
 
         Returns:
-        bool: Whether both characters exist on the same team.
+            bool: Whether both characters exist on the same team.
         """
         if (a in self.__allies and b in self.__allies) or (a in self.__foes and b in self.__foes):
             return True
@@ -315,7 +315,7 @@ class Battle:
 
     def next_turn(self):
         """
-        Increment the internal turn counter.
+            Increment the internal turn counter.
         """
         battle_party = self.__allies+self.__foes
 

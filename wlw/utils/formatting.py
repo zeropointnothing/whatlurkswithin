@@ -25,7 +25,7 @@ class FormatType(Enum):
         Note that WAIT/SKIP is a special type, and will be compiled regardless.
 
         Returns:
-        dict: The compiled regular expressions.
+            dict: The compiled regular expressions.
         """
         regex_patterns = {fmt: re.compile(re.escape(fmt.value) + r'(.*?)' + re.escape("</" + fmt.value[1:])) for fmt in cls if fmt not in [cls.WAIT, cls.SKIP]}
         # WAIT is special, because it has no closing tag and contains a number.
@@ -39,10 +39,10 @@ def format_line(text: str):
     Creates a list of tuples containing text styles from a string that can allow for formatted printing.
 
     Args:
-    text (str): The text to format.
+        text (str): The text to format.
 
     Returns:
-    list[tuple[FormatType, str|float]]: The formatted text, split by formatting styles and their values.
+        list[tuple[FormatType, str|float]]: The formatted text, split by formatting styles and their values.
     """
     regex = FormatType.compile_regex() # get all of the compiled regex patterns for each format
 
@@ -86,11 +86,11 @@ def get_format_up_to(fmt: list[tuple[FormatType, str|float]], pos: int) -> list[
     Split a format list up to a certain position in the text.
 
     Args:
-    fmt (list[tuple[FormatType, str|float]]): The formatted text to split.
-    pos (int): The position to split the text at.
+        fmt (list[tuple[FormatType, str|float]]): The formatted text to split.
+        pos (int): The position to split the text at.
     
     Returns:
-    list[tuple[FormatType, str|float]: A list of tuples containing text and its formatting type up to the requested character.
+        list[tuple[FormatType, str|float]: A list of tuples containing text and its formatting type up to the requested character.
     """
 
     ipos = 0 # internal pos
@@ -114,10 +114,10 @@ def get_format_max_length(fmt: list[tuple[FormatType, str|float]]) -> int:
     Get the maximum length of a formatted list, excluding WAIT and SKIP values..
 
     Args:
-    fmt (list[tuple[FormatType, str|float]]): The formatted text to get the length of.
+        fmt (list[tuple[FormatType, str|float]]): The formatted text to get the length of.
 
     Returns:
-    int: The maximum length of the format list, excluding WAIT and SKIP.
+        int: The maximum length of the format list, excluding WAIT and SKIP.
     """
 
     out = 0

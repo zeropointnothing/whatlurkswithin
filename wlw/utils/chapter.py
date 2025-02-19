@@ -12,8 +12,8 @@ class Chapter:
         Ensure context is passed properly to avoid data conflicts.
 
         Args:
-        manager (Manager): The game's current manager.
-        renderer (Renderer): The game's current renderer.
+            manager (Manager): The game's current manager.
+            renderer (Renderer): The game's current renderer.
         """
         self.title = "Unnamed!"
         self.manager = manager
