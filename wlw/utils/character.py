@@ -6,6 +6,13 @@ from enum import StrEnum
 from wlw.utils.errors import *
 from wlw.utils.formatting import format_line, get_format_max_length, FormatType
 
+class Sex(StrEnum):
+    """
+    Character sex's.
+    """
+    MALE = "m"
+    FEMALE = "f"
+
 class Character:
     """
     Character class.
@@ -15,11 +22,11 @@ class Character:
     Special characters may be excluded from several functions, and should be used for characters such as the
     narrator or "system".
     """
-    def __init__(self, name: str, sex: str = "m", affinity: int = 0, special: bool = False, hidden: bool = False):
+    def __init__(self, name: str, sex: Sex = Sex.MALE, affinity: int = 0, special: bool = False, hidden: bool = False):
         """
         Args:
             name (str): The character's name.
-            sex (str): The character's sex.
+            sex (Sex): The character's sex.
             affinity (int): The character's starting affinity.
             special (bool): Whether the character is considered 'special'.
             hidden (bool): Whether the character is 'hidden', and should fake their name as '...'.
@@ -30,10 +37,10 @@ class Character:
 
         self.hidden = hidden
 
-        if sex.lower() not in ["m", "f"]:
-            raise ValueError(f"Invalid character sex '{sex}' for character '{name}'. Expected 'm' or 'f'.")
-        else:
-            self.__sex = sex.lower()
+        if sex not in Sex:
+            raise ValueError(f"Invalid character sex '{sex}' for character '{name}'. Expected {[_ for _ in Sex]}")
+        self.__sex = sex.lower()
+
         try:
             affinity = int(str(affinity)) # account for bools, since they're a subclass of int
         except ValueError as e:
