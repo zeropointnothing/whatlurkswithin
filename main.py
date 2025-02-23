@@ -18,7 +18,13 @@ from wlw.utils.chapter import ChapterThread
 from wlw.utils.battle import Battle, BattleCharacter
 from wlw.utils.discord import RichPresence
 from wlw.utils.formatting import format_line, get_format_max_length, get_format_up_to, FormatType
-from wlw.game import chapter_modules
+from wlw.packaging.package import load_package
+
+if len(sys.argv) > 1 and sys.argv[1] in ["--source", "-s"]:
+    log.debug("Loading chapter modules via '__init__.py'!")
+    from wlw.game import chapter_modules
+else:
+    chapter_modules = load_package("[n1h1raxem1l::4::eva]", "chp.pkg.wlw")
 
 class WhatLurksWithin:
     def __init__(self, stdscr: curses.window):
