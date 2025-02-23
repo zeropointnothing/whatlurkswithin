@@ -38,7 +38,7 @@ class Manager:
         Game characters.
 
         Returns:
-        list: List of registered characters.
+            list: List of registered characters.
         """
         return self.__characters
 
@@ -48,7 +48,7 @@ class Manager:
         Persistent data.
 
         Returns:
-        dict: Persistent data.
+            dict: Persistent data.
         """
         return self.__persistent
     
@@ -58,8 +58,8 @@ class Manager:
         Set persistent data.
 
         Args:
-        key (str): Key to set.
-        value: Value to set.
+            key (str): Key to set.
+            value: Value to set.
         """
         self.__persistent[key] = value
 
@@ -76,8 +76,8 @@ class Manager:
         Set the game's position, which will be used to resume upon loading.
 
         Args:
-        chapter_title (str): The chapter's title.
-        section_name: The section to jump to.
+            chapter_title (str): The chapter's title.
+            section_name: The section to jump to.
         """
         self.__current_section = {"chapter": chapter_title, "section": section_name}
 
@@ -88,10 +88,10 @@ class Manager:
         Only characters added via this function will be saved to the save file.
 
         Args:
-        character (Character): Character object to register.
+         character (Character): Character object to register.
 
         Returns:
-        Character: The Character object supplied to this method.
+            Character: The Character object supplied to this method.
         """
         log.debug(f"Registering character '{character._name}' (hidden: {character.hidden})...")
         character_match = [_ for _ in self.__characters if _._name == character._name]
@@ -118,12 +118,12 @@ class Manager:
         Will not add duplicates.
 
         Args:
-        thought (bool): Whether the entry is a 'thought'.
-        title (str): The entry's title.
-        text (list[tuple[FormatType, str|float]]): The formatted text to add.
+            thought (bool): Whether the entry is a 'thought'.
+            title (str): The entry's title.
+            text (list[tuple[FormatType, str|float]]): The formatted text to add.
 
         Returns:
-        str: A 'history id'.
+            str: A 'history id'.
         """
         hid = hashlib.sha256(f"{text}{id(text)}".encode()).hexdigest()
         if not self._in_history(hid):
@@ -138,10 +138,10 @@ class Manager:
         Check if an entry exists in the history based on its HID.
 
         Args:
-        hid (str): The HistoryID to check for.
+            hid (str): The HistoryID to check for.
 
         Returns:
-        bool: Whether it was found in the history.
+            bool: Whether it was found in the history.
         """
         return hid in [_["hid"] for _ in self.history]
 
@@ -174,7 +174,7 @@ class Manager:
         Load game data from the save file.
 
         Raises:
-        FileNotFoundError: The save file does not exist.
+            FileNotFoundError: The save file does not exist.
         """
         log.info("Loading game data...")
         if not os.path.exists(self.save_path):

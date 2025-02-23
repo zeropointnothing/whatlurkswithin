@@ -48,7 +48,7 @@ class Renderer:
         The user's response from 'set_choices'.
 
         Returns:
-        str: The user's response.
+            str: The user's response.
         """
         if self.__choices_response == -1:
             return ""
@@ -63,12 +63,12 @@ class Renderer:
         Should not be access by scripts.
 
         Args:
-        to (int): The choice to change to.
+            to (int): The choice to change to.
 
         Raises:
-        ValueError: Attempted to set the user's choice to one that doesn't exist.
+            ValueError: Attempted to set the user's choice to one that doesn't exist.
         """
-        if to <= len(self.__choices) and to >= 0:
+        if len(self.__choices) >= to >= 0:
             self.__choices_response = to
         else:
             raise ValueError("Cannot select answer greater or less than the amount of choices!")
@@ -101,13 +101,13 @@ class Renderer:
         Accepts styling parameters via `color`, `italic`, and `bold`.
 
         Args:
-        x (int): X coord.
-        y (int): Y coord.
-        text (str): The text to place.
-        wrap (int): How far to wrap the string, if at all.
-        color (int): The color to place with.
-        italic (bool): Place text with the `A_ITALIC` styling.
-        bold (bool): Place the text with the `A_BOLD` styling.
+            x (int): X coord.
+            y (int): Y coord.
+            text (str): The text to place.
+            wrap (int): How far to wrap the string, if at all.
+            color (int): The color to place with.
+            italic (bool): Place text with the `A_ITALIC` styling.
+            bold (bool): Place the text with the `A_BOLD` styling.
         """
         text = textwrap.wrap(text, wrap) if wrap else [text]
 
@@ -132,10 +132,10 @@ class Renderer:
         Draw a box from (`sx`, `sy`) to (`ex`, `ey`).
 
         Args:
-        sx (int): Starting x.
-        sy (int): Starting y.
-        ex (int): Ending x.
-        ey (int): Ending y.
+            sx (int): Starting x.
+            sy (int): Starting y.
+            ex (int): Ending x.
+            ey (int): Ending y.
         """
         for y in range(sy, ey):
             if y == sy:
@@ -177,12 +177,12 @@ class Renderer:
         Upon choosing, the 'user_chose' property will update.
 
         Example:
-        ```python
-        [{"title": "Say hello", "id": "accept"}, {"title": "Refuse to greet them", "id": "refuse"}]
-        ```
+            ```python
+            [{"title": "Say hello", "id": "accept"}, {"title": "Refuse to greet them", "id": "refuse"}]
+            ```
 
         Args:
-        choices (list[dict]): A list of choices.
+            choices (list[dict]): A list of choices.
         """
         for choice in choices:
             if not isinstance(choice, dict):
@@ -200,7 +200,7 @@ class Renderer:
         Clears the choice menu and screen upon exit.
 
         Returns:
-        str: The user's choice.
+            str: The user's choice.
         """
 
         while not self.user_chose:
@@ -218,15 +218,13 @@ class Renderer:
         Set the game's active 'battle', then wait for the battle to conclude.
 
         Args:
-        battle (Battle): The battle instance.
+            battle (Battle): The battle instance.
         """
         self.__battle = battle
         self.__battle_result = -1
 
         while self.__battle_result == -1:
             time.sleep(0.1)
-
-        log.debug("JKHJKFHSJHF")
 
         out = self.__battle_result
         self.__battle = None

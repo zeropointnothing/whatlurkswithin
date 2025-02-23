@@ -2,8 +2,16 @@
 Character class for WLW.
 """
 import time
+from enum import StrEnum
 from wlw.utils.errors import *
 from wlw.utils.formatting import format_line, get_format_max_length, FormatType
+
+class Sex(StrEnum):
+    """
+    Character sex's.
+    """
+    MALE = "m"
+    FEMALE = "f"
 
 class Character:
     """
@@ -14,25 +22,25 @@ class Character:
     Special characters may be excluded from several functions, and should be used for characters such as the
     narrator or "system".
     """
-    def __init__(self, name: str, sex: str = "m", affinity: int = 0, special: bool = False, hidden: bool = False):
+    def __init__(self, name: str, sex: Sex = Sex.MALE, affinity: int = 0, special: bool = False, hidden: bool = False):
         """
         Args:
-        name (str): The character's name.
-        sex (str): The character's sex. Should be either 'm' or 'f'.
-        affinity (int): The character's starting affinity.
-        special (bool): Whether the character is considered 'special'.
-        hidden (bool): Whether the character is 'hidden', and should fake their name as '...'.
+            name (str): The character's name.
+            sex (Sex): The character's sex.
+            affinity (int): The character's starting affinity.
+            special (bool): Whether the character is considered 'special'.
+            hidden (bool): Whether the character is 'hidden', and should fake their name as '...'.
 
         Raises:
-        ValueError: 'sex' was not a valid string.
+            ValueError: 'sex' was not a valid string.
         """
 
         self.hidden = hidden
 
-        if sex.lower() not in ["m", "f"]:
-            raise ValueError(f"Invalid character sex '{sex}' for character '{name}'. Expected 'm' or 'f'.")
-        else:
-            self.__sex = sex.lower()
+        if sex not in Sex:
+            raise ValueError(f"Invalid character sex '{sex}' for character '{name}'. Expected {[_ for _ in Sex]}")
+        self.__sex = sex.lower()
+
         try:
             affinity = int(str(affinity)) # account for bools, since they're a subclass of int
         except ValueError as e:
@@ -78,7 +86,7 @@ class Character:
         Character pronouns.
 
         Returns:
-        dict: Dictionary containing subject, object, and possessive pronouns, based on character sex.
+            dict: Dictionary containing subject, object, and possessive pronouns, based on character sex.
         """
         if self.__sex == "m":
             return {"subject": "he", "object": "him", "possessive": "his"}
@@ -93,7 +101,7 @@ class Character:
         Character sex.
 
         Returns:
-        str: 'm' or 'f', based on the character's sex.
+            str: 'm' or 'f', based on the character's sex.
         """
         return self.__sex
 
@@ -106,18 +114,18 @@ class Character:
         For negatives, the lowest is returned.
 
         Returns:
-        str: Character's affinity level.
+            str: Character's affinity level.
         """
-        affin = None
+        affinity = None
 
         for level in self.__AFFINITY_LEVELS:
             if self.__affinity >= 0 and self.__affinity >= self.__AFFINITY_LEVELS[level]:
                 return level
             # negatives are reversed, so we want the last result.
             elif self.__affinity < 0 and self.__affinity <= self.__AFFINITY_LEVELS[level]:
-                affin = level
+                affinity = level
 
-        return affin
+        return affinity
 
     @property
     def affinity(self):
@@ -125,7 +133,7 @@ class Character:
         Character affinity.
 
         Returns:
-        int: Character's affinity.
+            int: Character's affinity.
         """
         return self.__affinity
     
@@ -144,7 +152,7 @@ class Character:
         Read-only to prevent issues with the Manager.
 
         Returns:
-        bool: Whether the character is considered 'special'.
+            bool: Whether the character is considered 'special'.
         """
         return self.__special
 
@@ -156,12 +164,12 @@ class Character:
         When the text has been fully read, the index will be -1.
 
         Returns:
-        tuple: Current text, current text index, is_thought.
+            tuple: Current text, current text index, is_thought.
         """
         if self.__current_text_index > get_format_max_length(self.__current_text):
-            return (self.__current_text, -1, self.__current_text_thought)
+            return self.__current_text, -1, self.__current_text_thought
 
-        return (self.__current_text, self.__current_text_index, self.__current_text_thought)
+        return self.__current_text, self.__current_text_index, self.__current_text_thought
 
     @property
     def _is_locked(self) -> bool:
@@ -169,7 +177,7 @@ class Character:
         Whether or not the current character's text is 'locked'.
 
         Returns:
-        bool: The character's lock status.
+            bool: The character's lock status.
         """
         return self.__current_text_lock
 
@@ -178,7 +186,7 @@ class Character:
         Locks a character's speech, preventing it from being cleared.
 
         Raises:
-        LockError: The character was already locked.
+            LockError: The character was already locked.
         """
         if self.__current_text_lock:
             raise LockError(f"Character '{self.name}' is already locked!")
@@ -192,7 +200,7 @@ class Character:
         To properly unlock the character, calls the `_mark_read_text` function.
 
         Raises:
-        LockError: The character was already unlocked.
+            LockError: The character was already unlocked.
         """
         if not self.__current_text_lock:
             raise LockError(f"Character '{self.name}' is already unlocked!")
@@ -207,7 +215,7 @@ class Character:
         Should only be called by the main thread.
 
         Args:
-        max (bool): Whether or not to completely max out the increment.
+            max (bool): Whether to completely max out the increment.
         """
 
         if max:
@@ -218,7 +226,7 @@ class Character:
         """
         Decrement the text index of the character's speech.
 
-        Should only called by the main thread.
+        Should only be called by the main thread.
         """
 
         self.__current_text_index -= 1
@@ -243,9 +251,9 @@ class Character:
         If `thought` is set, the renderer will likely display it with italics instead of quotation marks.
 
         Args:
-        text (str): The text for the character to speak.
-        thought (bool): Whether the text is a thought.
-        lock (bool): Whether to lock the character's speech.
+            text (str): The text for the character to speak.
+            thought (bool): Whether the text is a thought.
+            lock (bool): Whether to lock the character's speech.
         """
 
         if not isinstance(text, str):

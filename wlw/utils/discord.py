@@ -27,7 +27,7 @@ class RichPresence:
         Automatically locates the Discord IPC socket and preps the client for RPC.
 
         Args:
-        client_id (str): The client ID to use when communicating with Discord.
+            client_id (str): The client ID to use when communicating with Discord.
         """
         if sys.platform == "linux":
             self.__ipc_path = os.path.join(os.getenv("XDG_RUNTIME_DIR", "/tmp"),  "discord-ipc-0")
@@ -62,7 +62,7 @@ class RichPresence:
         If any known errors occur, will assume the connection was broken.
 
         Returns:
-        bool: Whether the connection is active and authenticated.
+            bool: Whether the connection is active and authenticated.
         """
 
         if not self.__can_rpc:
@@ -86,7 +86,7 @@ class RichPresence:
     @property
     def enabled(self):
         """
-        Whether or not RPC is enabled.
+        Whether RPC is enabled.
 
         To prevent errors, most functions will simply return if this is False.
         """
@@ -111,15 +111,15 @@ class RichPresence:
         Automatically creates the payload, then returns Discord's response, if any.
         
         Args:
-        type (ActivityType): The type of activity.
-        state (str): The 'state' of the activity. Will be the second line in the presence.
-        details (str): The 'details' of the activity. Will be the first line in the presence.
-        start (int | None): When the activity started. Will default the the current time if not supplied.
-        large_image (str | None): The large image key.
-        large_text (str | None): The large image's hover text.
+            type (ActivityType): The type of activity.
+            state (str): The 'state' of the activity. Will be the second line in the presence.
+            details (str): The 'details' of the activity. Will be the first line in the presence.
+            start (int | None): When the activity started. Will default to the current time if not supplied.
+            large_image (str | None): The large image key.
+            large_text (str | None): The large image's hover text.
 
         Returns:
-        tuple[int, dict] | None: Discord's response, if any.
+            tuple[int, dict] | None: Discord's response, if any.
         """
         # assemble the payload
         payload = {
@@ -169,7 +169,7 @@ class RichPresence:
         Useful for reconnecting to Discord's IPC.
 
         Returns:
-        tuple[int, dict]: Discord's response, if any.
+            tuple[int, dict]: Discord's response, if any.
         """
         if not self.__can_rpc:
             return None
@@ -191,7 +191,7 @@ class RichPresence:
         Returns Discord's response, if any.
         
         Returns:
-        tuple[int, dict] | None: Discord's response, if any.
+            tuple[int, dict] | None: Discord's response, if any.
         """
         if not self.__can_rpc:
             return None
@@ -217,19 +217,19 @@ class RichPresence:
 
     # manual RPC functions
 
-    def _connect(self) -> socket.socket:
+    def _connect(self) -> socket.socket | None:
         """
         Connect to the Discord IPC socket.
         
-        Should only be called once, unless the connection needs to be restablished.
+        Should only be called once, unless the connection needs to be reestablished.
 
         Returns:
-        socket: The connected socket.
+            socket | None: The connected socket.
         """
         if self.__socket:
             raise ConnectionError("IPC socket is already connected!")
         elif not self.__rpc_supported:
-            return
+            return None
 
         log.debug("Attempting to open a connection to the IPC socket...")
 
@@ -301,12 +301,12 @@ class RichPresence:
 
     # private backend stuff
 
-    def __check_auth(func):
+    def __check_auth(func: callable):
         """
         Decorator to check if the client is authenticated.
 
         Raises:
-        AuthenticationError: Client has no been authenticated yet.
+            AuthenticationError: Client has not been authenticated yet.
         """
         def wrapper(self, *args, **kwargs):
             if self.__authenticated in [0, 1]: # we aren't authenticating or already authenticated
@@ -336,7 +336,7 @@ class RichPresence:
         Attempt to read a packet from the IPC socket.
         
         Returns:
-        tuple[int, dict]: OpCode and Payload.
+            tuple[int, dict]: OpCode and Payload.
         """
         if not self.__socket:
             raise ConnectionError("IPC socket is not connected!")
