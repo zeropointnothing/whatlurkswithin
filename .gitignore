@@ -5,3 +5,6 @@ save.dat
 test.py
 .venv
 .idea
+chp.pkg.wlw
+main.dist
+main.build
