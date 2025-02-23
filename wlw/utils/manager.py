@@ -7,6 +7,7 @@ from wlw.utils.character import Character
 from wlw.utils.errors import *
 from wlw.utils.logger import WLWLogger
 from wlw.utils.formatting import FormatType
+from wlw.utils.xor import obfuscate
 
 logging.setLoggerClass(WLWLogger)
 log = logging.getLogger("WLWLogger")
@@ -108,24 +109,6 @@ class Manager:
                 return char
         raise CharacterNotFoundError(f"No such character '{name}'.")
 
-    def _xor_obfuscate(self, data: bytes) -> bytes:
-        """
-        (de)Obfuscate data using XOR with the obfuscation key.
-
-        Mainly used to discourage editing/save-scumming by making the reverse process
-        more annoying, though not impossible.
-
-        As long as the data hasn't been modified, should reverse any obfuscated bytes and vice-versa.
-
-        Args:
-        data (bytes): Data to (de)obfuscate.
-
-        Returns:
-        bytes: (de)Obfuscated data.
-        """
-        key = self.__obfuscation_key.encode()
-        return bytes([b ^ key[i % len(key)] for i, b in enumerate(data)])
-
     def _add_history(self, thought: bool, title: str, text: list[tuple[FormatType, str|float]]) -> str:
         """
         Add text to the history.
@@ -182,7 +165,7 @@ class Manager:
                 "characters": [_ for _ in self.__characters if not _.special],
                 "persistent": self.__persistent})
             
-            pickle.dump({"!!WLW-SAVE-FILE_DO-NOT-EDIT!!": self._xor_obfuscate(save)}, f)
+            pickle.dump({"!!WLW-SAVE-FILE_DO-NOT-EDIT!!": obfuscate(self.__obfuscation_key.encode(), save)}, f)
 
         log.info(f"Successfully wrote game data to '{self.save_path}'.")
 
@@ -200,7 +183,7 @@ class Manager:
         with open(self.save_path, "rb") as f:
             try:
                 raw = pickle.load(f) # load the save file container and depickle it
-                data = pickle.loads(self._xor_obfuscate(raw["!!WLW-SAVE-FILE_DO-NOT-EDIT!!"])) # deobfuscate, then reconstruct the save
+                data = pickle.loads(obfuscate(self.__obfuscation_key.encode(), raw["!!WLW-SAVE-FILE_DO-NOT-EDIT!!"])) # deobfuscate, then reconstruct the save
             except pickle.UnpicklingError as e:
                 raise BadSaveError("Save file is invalid or corrupt!") from e
             except UnicodeDecodeError as e: # deobfuscation errors, should hide as much context as possible
