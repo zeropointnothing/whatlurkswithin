@@ -37,7 +37,7 @@ def package_chapters(obfuscation_key: str, chapters_dir: str):
             for file in files:
                 if file.endswith(".py"):
                     mock_file_path = f"wlw.game.pkg.{os.path.basename(file)}" # mock file path to be used when the module is loaded
-                    file_path = os.path.abspath(os.path.join(root, file)).replace("/", "\\")
+                    file_path = os.path.abspath(os.path.join(root, file))
                     print(f"'{file_path}'...")
                     with open(file_path, "rb") as f2:
                         # metadata
