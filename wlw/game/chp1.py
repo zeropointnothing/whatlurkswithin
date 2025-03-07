@@ -1,5 +1,5 @@
 from wlw.utils.chapter import Chapter
-from wlw.utils.character import Character
+from wlw.utils.character import Character, Sex
 import time
 
 CHAPTER_TITLE = "False Beginnings"
@@ -10,10 +10,10 @@ class Main(Chapter):
         super().__init__(manager, renderer)
         self.title = CHAPTER_TITLE
 
-        self.nih = self.manager.register_character(Character("Nihira Khimaris", "f", 0, True))
-        self.emi = self.manager.register_character(Character("EdEn:TU9A-EMIL (Emil Khmaris)", "f", 60, hidden=True))
-        self.mav = self.manager.register_character(Character("Mavrn Aenchalii", "m", 15, hidden=True))
-        self.narr = self.manager.register_character(Character("Narrator", "m", 0, special=True))
+        self.nih = self.manager.register_character(Character("Nihira Khimaris", Sex.FEMALE, 0, True))
+        self.emi = self.manager.register_character(Character("EdEn:TU9A-EMIL (Emil Khimaris)", Sex.FEMALE, 60, hidden=True))
+        self.mav = self.manager.register_character(Character("Mavrn Aenchalii", Sex.MALE, 15, hidden=True))
+        self.narr = self.manager.register_character(Character("Narrator", Sex.MALE, 0, special=True))
 
     def start(self):
         self.narr.speak("Two people, two stories. One choice.", True)
@@ -112,7 +112,7 @@ class Main(Chapter):
         self.narr.unlock_speech()
 
         if user == "lie":
-            self.manager.persistent["player_emi_dozed-off_lie"] = True
+            self.manager.persistent["nihira_emil_dozed-off_lie"] = True
 
             self.nih.speak("Can you blame me? We've been drifting through the void for weeks now.")
             self.nih.speak("Seeing the same black nothingness all day everyday gets boring quick.")
@@ -125,7 +125,7 @@ class Main(Chapter):
             self.nih.speak("Alright, alright. Yes, I was. But it's only because the New Order won't stop sending them!")
             self.nih.speak("At this rate, I'll be drowning in reports even <i>if</i> I stay up reading all these things...")
         elif user == "tell":
-            self.manager.persistent["player_emi_dozed-off_lie"] = False
+            self.manager.persistent["nihira_emil_dozed-off_lie"] = False
 
             self.nih.speak("I was up late reading all the reports from the New Order that the chief keeps sending me.")
             self.nih.speak("I gesture to the two stacks of paper on my desk. The larger one, of course, being the unread reports.", True)
@@ -193,14 +193,14 @@ class Main(Chapter):
         self.emi.speak("I'm sure they are, Commander.")
 
         self.nih.speak("Our idle chatter continues as we make our way through the halls, eventually leading to the Recreational Area.", True)
-        self.nih.speak("Emil looks at me quizically, apparently only now realizing our destination.", True)
+        self.nih.speak("Emil looks at me quizzically, apparently only now realizing our destination.", True)
         self.emi.speak("Recreation?")
         self.nih.speak("Of course. I imagine most of our fighting crew is here, since we're still so far away from our destination.")
         self.nih.speak("Emil takes a moment to reply, her eyes narrowing briefly as she mulls something over.", True)
         self.emi.speak("Understood, Commander.")
 
         self.nih.speak("The Recreational Area is rather large, containing all sorts of activities to keep morale high and crew entertained.", True)
-        self.nih.speak("Not only are their various card and board games spread out on the room's many tables, in a dedicated corner lay several odd consoles.", True)
+        self.nih.speak("Not only are there various card and board games spread out on the room's many tables, in a dedicated corner lay several odd consoles.", True)
         self.nih.speak("On the opposite corner (and most of the wall parallel to us) are several seats stood before a counter, serving as a bar of sorts, although no alcohol would be served at a time like this.", True)
         self.nih.speak("Emil must have noticed me eying one of the consoles, because she gives me a light shove before whispering:", True)
         self.emi.speak("Go ahead.")
@@ -213,7 +213,7 @@ class Main(Chapter):
         self.nih.speak("Emil's eyes lock onto a group of people playing some sort of card game that had recently started, immediately taking her attention from me. She responds absentmindedly.", True)
         self.emi.speak("We could always switch roles, Commander...")
         self.nih.speak("I reply with a huff.", True)
-        self.nih.speak("And shatter my hip <i>again?</i> No thank you. Unless you feel like falling back a smidge, I don't think I would survive.")
+        self.nih.speak("And shatter my hip <i>again?</i> No thank you. Unless you feel like falling back a smidge, I don't think I would survive another round.")
         self.nih.speak("Besides, you've become a better fighter than I ever was.")
 
         self.nih.speak("Emil does not respond, her focus now entirely on the game of cards. Her eyes follow the players hands as each one has their turn, and I imagine she's keeping track.", True)
@@ -231,7 +231,7 @@ class Main(Chapter):
 
         self.mav.speak("Shocked to see you here, Commander! I thought you'd still be snoozing in that office of yours.")
 
-        if self.manager.persistent["player_emi_dozed-off_lie"]: # player lied to Emil about dozing off, why should she defend them?
+        if self.manager.persistent["nihira_emil_dozed-off_lie"]: # player lied to Emil about dozing off, why should she defend them?
             self.nih.speak("Emil glances at Mavrn as if to say something, but remains silent.", True)
             self.nih.speak("You know how much paperwork they give me, Mavrn. I'm not just dozing off because I feel like it.")
             self.nih.speak("As much as I would like to stay up all night doing something <i>fun</i>, that isn't exactly in my job description.")
@@ -263,7 +263,7 @@ class Main(Chapter):
 
         self.nih.speak("Emil's expression only hardens.", True)
         self.emi.speak("I am not just a 'battle robot', Doctor. I am perfectly capable of preforming more than just one set of tasks.")
-        self.mav.speak("Oh, I'm <i>sure</i>. That artifical brain of yours must be <i>whirring</i> away at the thought of it.")
+        self.mav.speak("Oh, I'm <i>sure</i>. That artificial brain of yours must be <i>whirring</i> away at the thought of it.")
 
         self.nih.speak("The tension between the two is clearly getting exponentially worse.", True, True)
 
@@ -288,13 +288,29 @@ class Main(Chapter):
         self.manager.set_section(CHAPTER_TITLE, "f_s1_mavrn_defend")
         self.manager.save()
 
+        self.emi.affinity += 1
+        self.manager.persistent["nihira_emil_s1-mavrn_defend"] = True
+
+        self.nih.speak("Mavrn, although plenty annoying, still follows orders, so I quickly interject, my voice stern.", True)
+        self.nih.speak("Her body is just as organic as yours, Doctor. I suggest you watch your tone.")
+        self.nih.speak("Mavrn, knowing very well I over-rank him by quite a few ranks, hesitates only for a moment before backing down.", True)
+        self.nih.speak("He sighs.", True)
+        self.mav.speak("My apologies, Commander.")
+        self.nih.speak("Emil glances over at me, the cold look on her face only fading partially.", True)
+        self.emi.speak("I can fight my own battles, Commander. I do not require your assistance.")
+        self.nih.speak("I am well aware. But I think everyone would prefer if those battles stayed out of recreation.")
+        self.nih.speak("By now, several people have begun to stare, finding the three of us more interesting than whatever they were doing.", True)
         self.nih.speak("")
 
     def f_s1_mavrn_silent(self):
         """
         Stay silent.
         """
-        ...
+        self.manager.set_section(CHAPTER_TITLE, "f_s1_mavrn_silent")
+        self.manager.save()
+
+        self.emi.affinity -= 3
+        self.manager.persistent["nihira_emil_s1-mavrn_defend"] = False
 
     def f_s2(self):
         self.manager.set_section(CHAPTER_TITLE, "f_s2")
