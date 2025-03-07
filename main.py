@@ -714,6 +714,9 @@ if __name__ == "__main__":
         game.rpc._disconnect()
         log.critical("WLW encountered an unrecoverable error!")
         log.error(e, exc_info=True)
+
+        print("WLW encountered an unrecoverable error and had to close. Check wlw.log for more information.") # user feedback
+
         sys.exit(1)
         # raise e
 
